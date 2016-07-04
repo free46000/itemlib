@@ -1,4 +1,4 @@
-package demoapp.free.com.itemlib;
+package free.com.itemlib;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
