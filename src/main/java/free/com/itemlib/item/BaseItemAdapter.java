@@ -20,6 +20,8 @@ import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemSimple;
 
+// TODO: 2016/7/5 0005 notifyItemRangeInserted notifyItemInserted notifyItemRangeRemoved...
+// TODO: 2016/7/5 0005 loadMore 功能(onbindview的时候传给ItemLoadMore，然后设置是否自动加载或者加载完成)
 public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.RecyclerViewHolder> {
     protected final List<String> mTypeList = new ArrayList<>();
     protected final List<Item> mTypeItemList = new ArrayList<>();
@@ -38,7 +40,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     protected boolean isAnimEnable;
     protected boolean isShowAnimWhenFirst;
     protected BaseAnimation animation;
-    protected long animDuration = 600L;
+    protected long animDuration = 400L;
     protected Interpolator interpolator = new LinearInterpolator();
 
     public BaseItemAdapter(Context context) {
@@ -212,9 +214,6 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     private void addAnimation(ItemViewHolder holder) {
         if (isAnimEnable) {
             if (!isShowAnimWhenFirst || holder.location > lastAnimIndex) {
-                if (animation == null) {
-                    animation = new SlideInLeftAnimation();
-                }
                 for (Animator anim : animation.getAnimators(holder.getItemView())) {
                     startAnim(anim, holder.location);
                 }
@@ -245,8 +244,8 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
      */
     public void openLoadAnimation(BaseAnimation animation, boolean isShowAnimWhenFirst) {
         this.isAnimEnable = true;
-        this.animation = animation;
         this.isShowAnimWhenFirst = isShowAnimWhenFirst;
+        this.animation = animation == null ? new SlideInLeftAnimation() : animation;
     }
 
     @Override
