@@ -52,6 +52,11 @@ public abstract class ItemBase implements Item {
     }
 
     @Override
+    public boolean isFullSpan() {
+        return false;
+    }
+
+    @Override
     public String getKey() {
         return key;
     }

@@ -3,6 +3,7 @@ package free.com.itemlib.item;
 import android.animation.Animator;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
@@ -17,12 +18,15 @@ import free.com.itemlib.item.animation.BaseAnimation;
 import free.com.itemlib.item.animation.SlideInLeftAnimation;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
+import free.com.itemlib.item.view.content.ItemSimple;
 
 public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.RecyclerViewHolder> {
     protected final List<String> mTypeList = new ArrayList<>();
     protected final List<Item> mTypeItemList = new ArrayList<>();
     protected Context context;
     private List<Item> dataItemList = new ArrayList<>();
+    private List<Item> headItemList = new ArrayList<>();
+    private List<Item> footItemList = new ArrayList<>();
     protected OnItemClickListener onItemClickListener;
     protected OnItemLongClickListener onItemLongClickListener;
 
@@ -51,6 +55,24 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
 
     public void addDataItem(Item... item) {
         addData(Arrays.asList(item));
+    }
+
+    public void addHeadView(View... views) {
+        if (views == null || views.length == 0) {
+            return;
+        }
+        for (int i = 0; i < views.length; i++) {
+            headItemList.add(new ItemSimple(views[i]));
+        }
+    }
+
+    public void addFootView(View... views) {
+        if (views == null || views.length == 0) {
+            return;
+        }
+        for (int i = 0; i < views.length; i++) {
+            footItemList.add(new ItemSimple(views[i]));
+        }
     }
 
     /**
@@ -105,6 +127,8 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
 
     public void clearData() {
         dataItemList.clear();
+        headItemList.clear();
+        footItemList.clear();
         mTypeList.clear();
         mTypeItemList.clear();
         currShrinkLen = 0;
@@ -124,13 +148,19 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     }
 
     public Item getItem(int position) {
-        return dataItemList.get(position);
+        if (position < headItemList.size()) {
+            return headItemList.get(position);
+        }
+        int footPosition = position - headItemList.size() - dataItemList.size();
+        if (footPosition >= 0) {
+            return footItemList.get(footPosition);
+        }
+        return dataItemList.get(position - headItemList.size());
     }
 
     @Override
     public int getItemCount() {
-        System.out.println("===getItemCount===" + dataItemList.size());
-        return dataItemList.size();
+        return dataItemList.size() + headItemList.size() + footItemList.size();
     }
 
 
@@ -145,6 +175,20 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         return myViewHolder;
     }
 
+    @Override
+    public void onViewAttachedToWindow(BaseItemAdapter.RecyclerViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        if (holder.itemViewHolder.isFullSpan()) {
+            setFullSpan(holder);
+        }
+    }
+
+    protected void setFullSpan(RecyclerView.ViewHolder holder) {
+        if (holder.itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams) {
+            StaggeredGridLayoutManager.LayoutParams params = (StaggeredGridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
+            params.setFullSpan(true);
+        }
+    }
 
     @Override
     public void onBindViewHolder(RecyclerViewHolder holder, int position) {
@@ -163,7 +207,6 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
                 .setLongClickListener(onItemLongClickListener);
         itemHolder.populateItemView(item, params);
         addAnimation(itemHolder);
-        System.out.println("===onBindViewHolder===" + holder + position);
     }
 
     private void addAnimation(ItemViewHolder holder) {
@@ -186,13 +229,24 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     }
 
     /**
-     * Set ObjectAnimator
+     * 打开加载动画
      *
      * @param animation BaseAnimation
      */
     public void openLoadAnimation(BaseAnimation animation) {
+        openLoadAnimation(animation, true);
+    }
+
+    /**
+     * 打开加载动画
+     *
+     * @param animation           BaseAnimation
+     * @param isShowAnimWhenFirst boolean 是否只有在初次加载的时候才使用动画
+     */
+    public void openLoadAnimation(BaseAnimation animation, boolean isShowAnimWhenFirst) {
         this.isAnimEnable = true;
         this.animation = animation;
+        this.isShowAnimWhenFirst = isShowAnimWhenFirst;
     }
 
     @Override
@@ -207,7 +261,6 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         } else {
             mTypeItemList.set(index, item);
         }
-        System.out.println("===getItemViewType===" + index + "===" + position);
         return index;
     }
 

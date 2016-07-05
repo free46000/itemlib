@@ -78,6 +78,9 @@ public abstract class ItemViewHolder<T extends Item> {
         setActivated(currItem);
     }
 
+    public boolean isFullSpan() {
+        return currItem.isFullSpan();
+    }
 
     //    * 设置背景根据 @link #getBackResID()返回值做逻辑处理并给tableItem赋值
 

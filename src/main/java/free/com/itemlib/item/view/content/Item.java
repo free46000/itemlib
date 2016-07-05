@@ -17,6 +17,8 @@ public interface Item {
 
     Object getTag();
 
+    boolean isFullSpan();
+
     void setItemEntity(ItemEntity itemEntity);
 
     ItemEntity getItemEntity();
