@@ -51,4 +51,8 @@ public class ItemLoadMore extends ItemBase {
         return false;
     }
 
+    @Override
+    public boolean isFullSpan() {
+        return true;
+    }
 }

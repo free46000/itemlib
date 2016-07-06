@@ -18,6 +18,7 @@ import free.com.itemlib.item.animation.BaseAnimation;
 import free.com.itemlib.item.animation.SlideInLeftAnimation;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
+import free.com.itemlib.item.view.content.ItemLoadMore;
 import free.com.itemlib.item.view.content.ItemSimple;
 
 // TODO: 2016/7/5 0005 notifyItemRangeInserted notifyItemInserted notifyItemRangeRemoved...
@@ -79,6 +80,10 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
             simple.setIsFullSpan(true);
             footItemList.add(simple);
         }
+    }
+
+    public void addLoadMoreView(OnLoadMoreListener listener,boolean isAutoLoadMore) {
+        footItemList.add(new ItemLoadMore(listener,isAutoLoadMore));
     }
 
     /**
