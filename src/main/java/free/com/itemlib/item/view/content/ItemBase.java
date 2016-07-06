@@ -17,6 +17,7 @@ public abstract class ItemBase implements Item {
     protected String key;
     protected boolean clickable = true;
     protected boolean touchable = false;
+    protected boolean isFullSpan = false;
     protected int backResId;
     protected boolean activated;
     protected int shrinkLength;
@@ -53,7 +54,12 @@ public abstract class ItemBase implements Item {
 
     @Override
     public boolean isFullSpan() {
-        return false;
+        return isFullSpan;
+    }
+
+    @Override
+    public void setIsFullSpan(boolean isFullSpan) {
+        this.isFullSpan = isFullSpan;
     }
 
     @Override

@@ -64,7 +64,9 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
             return;
         }
         for (int i = 0; i < views.length; i++) {
-            headItemList.add(new ItemSimple(views[i]));
+            ItemSimple simple = new ItemSimple(views[i]);
+            simple.setIsFullSpan(true);
+            headItemList.add(simple);
         }
     }
 
@@ -73,7 +75,9 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
             return;
         }
         for (int i = 0; i < views.length; i++) {
-            footItemList.add(new ItemSimple(views[i]));
+            ItemSimple simple = new ItemSimple(views[i]);
+            simple.setIsFullSpan(true);
+            footItemList.add(simple);
         }
     }
 

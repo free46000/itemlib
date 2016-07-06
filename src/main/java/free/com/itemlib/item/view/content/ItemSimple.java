@@ -8,7 +8,7 @@ import free.com.itemlib.item.view.ItemSimpleView;
 import free.com.itemlib.item.view.ItemViewHolder;
 
 /**
- * Created by worktile-mobile on 2016/7/5.
+ * Created by wzx on 2016/7/5.
  */
 public class ItemSimple extends ItemBase {
     private View itemView;
@@ -26,11 +26,6 @@ public class ItemSimple extends ItemBase {
     public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
 
         return new ItemSimpleView(context, this, itemView);
-    }
-
-    @Override
-    public boolean isFullSpan() {
-        return true;
     }
 
     @Override
