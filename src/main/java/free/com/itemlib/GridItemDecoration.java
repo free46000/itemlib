@@ -1,0 +1,89 @@
+package free.com.itemlib;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+
+/**
+ * https://github.com/CymChad/BaseRecyclerViewAdapterHelper
+ */
+public class GridItemDecoration extends RecyclerView.ItemDecoration {
+
+    private Drawable dividerDrawable;
+    private int orientation = LinearLayoutManager.VERTICAL;
+
+    public GridItemDecoration(Drawable divider) {
+        dividerDrawable = divider;
+    }
+
+    public GridItemDecoration(Context context, int resId) {
+        dividerDrawable = context.getResources().getDrawable(resId);
+    }
+
+    public GridItemDecoration(Context context, int resId, int orientation) {
+        dividerDrawable = context.getResources().getDrawable(resId);
+        this.orientation = orientation;
+    }
+
+    // TODO: 2016/7/6 需要实现线性布局（使用现有逻辑即可）和表格布局（需判断spansize设置left）两种模式的分割线
+    //目前横向上实现逻辑占用单个Item布局的空间，应该判断实现让分割线的size平分到每个Item
+    //目前竖向上实现逻辑第0个的top是0所以边线画在屏幕外，其余的top是边线的高度则边线填充此区域（原理画在当前view的Top以上）
+    @Override
+    public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+        if (dividerDrawable == null) {
+            return;
+        }
+
+        if (parent.getChildLayoutPosition(view) < 1) {
+            return;
+        }
+
+        outRect.top = dividerDrawable.getIntrinsicHeight();
+//        outRect.left = dividerDrawable.getIntrinsicWidth();
+//        if (orientation == LinearLayoutManager.VERTICAL) {
+//            outRect.top = dividerDrawable.getIntrinsicHeight();
+//        } else if (orientation == LinearLayoutManager.HORIZONTAL) {
+//            outRect.left = dividerDrawable.getIntrinsicWidth();
+//        }
+    }
+
+    /**
+     * @param c
+     * @param parent
+     * @param state
+     */
+    @Override
+    public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+        if (dividerDrawable == null) {
+            return;
+        }
+
+        int childCount = parent.getChildCount();
+        int rightV = parent.getWidth();
+        for (int i = 0; i < childCount; i++) {
+            View child = parent.getChildAt(i);
+            RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
+
+            int leftV = parent.getPaddingLeft() + child.getPaddingLeft();
+            int bottomV = child.getTop() - params.topMargin;
+            int topV = bottomV - dividerDrawable.getIntrinsicHeight();
+
+            int topH = child.getTop() + params.topMargin;
+            int bottomH = child.getBottom() + params.bottomMargin;
+            int leftH = child.getRight() + params.rightMargin;
+            int rightH = leftH + dividerDrawable.getIntrinsicWidth();
+//            int rightH = child.getLeft() - params.leftMargin;
+//            int leftH = rightH - dividerDrawable.getIntrinsicWidth();
+            dividerDrawable.setBounds(leftH, topH, rightH, bottomH);
+            dividerDrawable.draw(c);
+            dividerDrawable.setBounds(leftV, topV, rightV, bottomV);
+            dividerDrawable.draw(c);
+        }
+    }
+
+
+}

@@ -1,5 +1,6 @@
 package free.com.itemlib;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,7 +21,7 @@ import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemBase;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     private RecyclerView recyclerView;
     private BaseItemAdapter baseItemAdapter;
 
@@ -32,17 +33,17 @@ public class MainActivity extends AppCompatActivity {
         baseItemAdapter = new BaseItemAdapter(this);
 
         TextView headView = new TextView(this);
-        headView.setText("111111111111111111111");
+        headView.setText("11\n11111\n11111\n11111\n111\n1fasjfjdkasfj");
         headView.setHeight(100);
         headView.setBackgroundColor(0xFF777777);
 
         TextView headView1 = new TextView(this);
-        headView1.setText("22222222222222222");
+        headView1.setText("22\n22\n22222\n22222\n222");
         headView1.setHeight(100);
         headView1.setBackgroundColor(0xFF777777);
 
         TextView headView2 = new TextView(this);
-        headView2.setText("333333333333333333333");
+        headView2.setText("333\n33333\n33333\n333\n33333");
         headView2.setHeight(100);
         headView2.setBackgroundColor(0xFF777777);
 
@@ -58,26 +59,28 @@ public class MainActivity extends AppCompatActivity {
 
 
         baseItemAdapter.setDataItemList(getItemList());
-//        baseItemAdapter.addHeadView(headView, headView1, headView2, headView3);
+        baseItemAdapter.addHeadView(headView, headView1, headView2, headView3);
         baseItemAdapter.addFootView(footView);
-        baseItemAdapter.openLoadAnimation(new SlideInBottomAnimation(), false);
+//        baseItemAdapter.openLoadAnimation(new SlideInBottomAnimation(), false);
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(baseItemAdapter);
+        recyclerView.addItemDecoration(new GridItemDecoration(this, R.drawable.list_divider));
 //        baseItemAdapter.notifyDataSetChanged();
     }
 
     private List<Item> getItemList() {
         List<Item> list = new ArrayList<>();
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 20; i++) {
             if (i % 5 == 0) {
-                list.add(new ItemText(i + "fdsagsagagsaggasg" + i) {
+                list.add(new ItemText(i + "fdsagsaadfdasfasfdasfdasfdasfdgagsaggasg" + i) {
                     @Override
                     public boolean isFullSpan() {
                         return true;
                     }
                 });
             }
-            list.add(new ItemText(i + "fdsagsagagsaggasg" + i));
+            list.add(new ItemText(i + "fsadfsafdsafdsafdsafdsafdsafdasfdsafdsafdsfdasf" + i));
         }
         return list;
     }
@@ -113,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                 TextView textView = new TextView(context);
                 textView.setText("111111111111111111111");
                 textView.setHeight(100);
-                textView.setBackgroundColor(0xFFBBBBBB);
+//                textView.setBackgroundColor(0xFFBBBBBB);
                 return textView;
             }
 
@@ -121,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             public void setData(ItemText itemContent) {
                 ((TextView) itemView).setText(itemContent.value);
                 if (isFullSpan()) {
-                    itemView.setBackgroundColor(0xFFDD66CC);
+//                    itemView.setBackgroundColor(0xFFDD66CC);
                     ((TextView) itemView).setHeight(60);
                 }
             }
