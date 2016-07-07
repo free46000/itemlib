@@ -18,6 +18,7 @@ import free.com.itemlib.item.animation.BaseAnimation;
 import free.com.itemlib.item.animation.SlideInLeftAnimation;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
+import free.com.itemlib.item.view.content.ItemLoadMore;
 import free.com.itemlib.item.view.content.ItemSimple;
 
 // TODO: 2016/7/5 0005 notifyItemRangeInserted notifyItemInserted notifyItemRangeRemoved...
@@ -64,7 +65,9 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
             return;
         }
         for (int i = 0; i < views.length; i++) {
-            headItemList.add(new ItemSimple(views[i]));
+            ItemSimple simple = new ItemSimple(views[i]);
+            simple.setIsFullSpan(true);
+            headItemList.add(simple);
         }
     }
 
@@ -73,8 +76,14 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
             return;
         }
         for (int i = 0; i < views.length; i++) {
-            footItemList.add(new ItemSimple(views[i]));
+            ItemSimple simple = new ItemSimple(views[i]);
+            simple.setIsFullSpan(true);
+            footItemList.add(simple);
         }
+    }
+
+    public void addLoadMoreView(OnLoadMoreListener listener,boolean isAutoLoadMore) {
+        footItemList.add(new ItemLoadMore(listener,isAutoLoadMore));
     }
 
     /**

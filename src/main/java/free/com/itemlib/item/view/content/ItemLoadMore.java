@@ -1,33 +1,58 @@
-package free.com.itemlib.item.view.content;//package com.shiku.commonlib.item.view.content;
-//
-//import android.content.Context;
-//import android.view.ViewGroup;
-//
-//import com.free.commlib.item.view.ItemLoadMoreView;
-//import com.free.commlib.item.view.ItemViewHolder;
-//
-//public class ItemLoadMore extends ItemBase {
-//    protected CharSequence value;
-//    public boolean clickable = false;
-//    public ItemLoadMoreView itemViewHolder;
-//
-//    public ItemLoadMore(CharSequence value) {
-//        this.value = value;
-//    }
-//
-//    @Override
-//    public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
-//        itemViewHolder = new ItemLoadMoreView(context, this);
-//        return itemViewHolder;
-//    }
-//
-//    public CharSequence getValue() {
-//        return value;
-//    }
-//
-//    public void setValue(CharSequence value) {
-//        this.value = value;
-//    }
-//
-//
-//}
+package free.com.itemlib.item.view.content;
+
+import free.com.itemlib.item.OnLoadMoreListener;
+import free.com.itemlib.item.view.ItemLoadMoreView;
+import free.com.itemlib.item.view.ItemViewHolder;
+
+
+import android.content.Context;
+import android.view.ViewGroup;
+
+
+public class ItemLoadMore extends ItemBase {
+    protected OnLoadMoreListener mOnLoadMoreListener;
+    public ItemLoadMoreView itemViewHolder;
+    protected boolean isAutoLoadMore;
+
+    public ItemLoadMore(OnLoadMoreListener loadMoreListener) {
+        this(loadMoreListener, true);
+    }
+
+    /**
+     *
+     * @param loadMoreListener
+     * @param isAutoLoadMore 是否需要滑动到就自动加载
+     */
+    public ItemLoadMore(OnLoadMoreListener loadMoreListener, boolean isAutoLoadMore) {
+        if (loadMoreListener == null) {
+            throw new NullPointerException();
+        }
+        this.mOnLoadMoreListener = loadMoreListener;
+        this.isAutoLoadMore = isAutoLoadMore;
+    }
+
+    @Override
+    public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
+        if (itemViewHolder == null)
+            itemViewHolder = new ItemLoadMoreView(context, this);
+        return itemViewHolder;
+    }
+
+    public OnLoadMoreListener getOnLoadMoreListener() {
+        return mOnLoadMoreListener;
+    }
+
+    public boolean isAutoLoadMore() {
+        return isAutoLoadMore;
+    }
+
+    @Override
+    public boolean isClickable() {
+        return false;
+    }
+
+    @Override
+    public boolean isFullSpan() {
+        return true;
+    }
+}

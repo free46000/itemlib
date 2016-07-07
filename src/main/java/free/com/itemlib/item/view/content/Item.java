@@ -19,6 +19,8 @@ public interface Item {
 
     boolean isFullSpan();
 
+    void setIsFullSpan(boolean isFullSpan);
+
     void setItemEntity(ItemEntity itemEntity);
 
     ItemEntity getItemEntity();

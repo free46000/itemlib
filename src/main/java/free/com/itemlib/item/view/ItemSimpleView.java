@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import free.com.itemlib.item.view.content.ItemSimple;
 
 /**
- * Created by worktile-mobile on 2016/7/5.
+ * Created by wzx on 2016/7/5.
  */
 public class ItemSimpleView extends ItemViewHolder<ItemSimple> {
 
