@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
         headView.setHeight(100);
         headView.setBackgroundColor(0xFF777777);
 
+        
         TextView headView1 = new TextView(this);
         headView1.setText("22\n22\n22222\n22222\n222");
         headView1.setHeight(100);
