@@ -2,6 +2,7 @@ package free.com.itemlib;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import free.com.itemlib.item.BaseItemAdapter;
+import free.com.itemlib.item.OnLoadMoreListener;
 import free.com.itemlib.item.animation.SlideInBottomAnimation;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
@@ -37,7 +39,7 @@ public class MainActivity extends Activity {
         headView.setHeight(100);
         headView.setBackgroundColor(0xFF777777);
 
-        
+
         TextView headView1 = new TextView(this);
         headView1.setText("22\n22\n22222\n22222\n222");
         headView1.setHeight(100);
@@ -62,12 +64,31 @@ public class MainActivity extends Activity {
         baseItemAdapter.setDataItemList(getItemList());
         baseItemAdapter.addHeadView(headView, headView1, headView2, headView3);
         baseItemAdapter.addFootView(footView);
+        baseItemAdapter.addLoadMoreView(new OnLoadMoreListener() {
+            @Override
+            public void onLoadMore() {
+                baseItemAdapter.addDataItem(new ItemText
+                        ("QQQQQ"));
+                baseItemAdapter.addDataItem(new ItemText
+                        ("WWWWW"));
+                baseItemAdapter.addDataItem(new ItemText
+                        ("EEEEE"));
+                baseItemAdapter.setLoadComplete(false);
+                new Handler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        baseItemAdapter.notifyDataSetChanged();
+
+                    }
+                });
+
+            }
+        }, false);
 //        baseItemAdapter.openLoadAnimation(new SlideInBottomAnimation(), false);
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
 //        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(baseItemAdapter);
         recyclerView.addItemDecoration(new GridItemDecoration(this, R.drawable.list_divider));
-//        baseItemAdapter.notifyDataSetChanged();
     }
 
     private List<Item> getItemList() {

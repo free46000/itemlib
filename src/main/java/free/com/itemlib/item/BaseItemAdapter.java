@@ -36,6 +36,8 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     protected int shrinkLenMax = 6;
     protected int currShrinkLen = 0;
 
+    protected ItemLoadMore itemLoadMore;
+
     //动画相关配置
     protected int lastAnimIndex = -1;
     protected boolean isAnimEnable;
@@ -82,8 +84,14 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         }
     }
 
-    public void addLoadMoreView(OnLoadMoreListener listener,boolean isAutoLoadMore) {
-        footItemList.add(new ItemLoadMore(listener,isAutoLoadMore));
+    public void addLoadMoreView(OnLoadMoreListener listener, boolean isAutoLoadMore) {
+        itemLoadMore = new ItemLoadMore(listener, isAutoLoadMore);
+        footItemList.add(itemLoadMore);
+    }
+
+    public void setLoadComplete(boolean isLoadAll) {
+        if (itemLoadMore != null)
+            itemLoadMore.setLoadComplete(isLoadAll);
     }
 
     /**
@@ -144,6 +152,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         mTypeItemList.clear();
         currShrinkLen = 0;
         lastAnimIndex = -1;
+        itemLoadMore = null;
     }
 
     public List<Item> getDataList() {
@@ -208,10 +217,11 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         if (item.isClickable()) {
             itemHolder.setOnItemClickListener(onItemClickListener);
             itemHolder.setOnItemLongClickListener(onItemLongClickListener);
-        } else {
-            itemHolder.setOnItemClickListener(null);
-            itemHolder.setOnItemLongClickListener(null);
         }
+//        else {
+//            itemHolder.setOnItemClickListener(null);
+//            itemHolder.setOnItemLongClickListener(null);
+//        }
         holder.itemView.setTag(itemHolder);
         ItemViewHolder.ViewHolderParams params = new ItemViewHolder.ViewHolderParams()
                 .setItemLocation(position).setItemCount(getItemCount()).setClickListener(onItemClickListener)
