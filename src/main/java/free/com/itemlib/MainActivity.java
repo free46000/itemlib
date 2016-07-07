@@ -32,6 +32,8 @@ public class MainActivity extends Activity {
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
 
+
+        
         TextView headView = new TextView(this);
         headView.setText("11\n11111\n11111\n11111\n111\n1fasjfjdkasfj");
         headView.setHeight(100);
