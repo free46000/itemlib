@@ -10,12 +10,12 @@ import java.util.Map;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.common.ReflectUtil;
 import free.com.itemlib.item.view.content.Item;
-import free.com.itemlib.item.view.content.ItemBase;
+import free.com.itemlib.item.view.content.ItemImpl;
 
 /**
  * Created by Administrator on 2015/5/9 0009.
  */
-public abstract class ItemEntity extends ItemBase {
+public abstract class ItemEntity extends ItemImpl {
     List<Item> itemList;
     List<Item> itemIntroList;
     List<Item> itemInputList;

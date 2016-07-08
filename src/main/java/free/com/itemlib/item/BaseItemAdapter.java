@@ -18,8 +18,8 @@ import free.com.itemlib.item.animation.BaseAnimation;
 import free.com.itemlib.item.animation.SlideInLeftAnimation;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
-import free.com.itemlib.item.view.content.ItemLoadMore;
 import free.com.itemlib.item.view.content.ItemSimple;
+import free.com.itemlib.item.view.content.ItemLoadMore;
 
 // TODO: 2016/7/5 0005 notifyItemRangeInserted notifyItemInserted notifyItemRangeRemoved...
 // TODO: 2016/7/5 0005 loadMore 功能(onbindview的时候传给ItemLoadMore，然后设置是否自动加载或者加载完成)

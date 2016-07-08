@@ -2,6 +2,7 @@ package free.com.itemlib;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +15,8 @@ import android.view.View;
 public class GridItemDecoration extends RecyclerView.ItemDecoration {
 
     private Drawable dividerDrawable;
+    private Paint dividerPaint;
+    private int dividerHeight;
     private int orientation = LinearLayoutManager.VERTICAL;
 
     public GridItemDecoration(Drawable divider) {
@@ -22,11 +25,14 @@ public class GridItemDecoration extends RecyclerView.ItemDecoration {
 
     public GridItemDecoration(Context context, int resId) {
         dividerDrawable = context.getResources().getDrawable(resId);
+        dividerHeight = dividerDrawable.getIntrinsicHeight();
     }
 
-    public GridItemDecoration(Context context, int resId, int orientation) {
-        dividerDrawable = context.getResources().getDrawable(resId);
-        this.orientation = orientation;
+    public GridItemDecoration(Context context, int dividerColor, int dividerHeight) {
+        this.dividerHeight = dividerHeight;
+        dividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        dividerPaint.setColor(dividerColor);
+        dividerPaint.setStyle(Paint.Style.FILL);
     }
 
     // TODO: 2016/7/6 需要实现线性布局（使用现有逻辑即可）和表格布局（需判断spansize设置left）两种模式的分割线
@@ -42,7 +48,7 @@ public class GridItemDecoration extends RecyclerView.ItemDecoration {
             return;
         }
 
-        outRect.top = dividerDrawable.getIntrinsicHeight();
+        outRect.top = dividerHeight;
 //        outRect.left = dividerDrawable.getIntrinsicWidth();
 //        if (orientation == LinearLayoutManager.VERTICAL) {
 //            outRect.top = dividerDrawable.getIntrinsicHeight();
@@ -58,10 +64,6 @@ public class GridItemDecoration extends RecyclerView.ItemDecoration {
      */
     @Override
     public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-        if (dividerDrawable == null) {
-            return;
-        }
-
         int childCount = parent.getChildCount();
         int rightV = parent.getWidth();
         for (int i = 0; i < childCount; i++) {
@@ -70,18 +72,24 @@ public class GridItemDecoration extends RecyclerView.ItemDecoration {
 
             int leftV = parent.getPaddingLeft() + child.getPaddingLeft();
             int bottomV = child.getTop() - params.topMargin;
-            int topV = bottomV - dividerDrawable.getIntrinsicHeight();
+            int topV = bottomV - dividerHeight;
 
             int topH = child.getTop() + params.topMargin;
             int bottomH = child.getBottom() + params.bottomMargin;
             int leftH = child.getRight() + params.rightMargin;
-            int rightH = leftH + dividerDrawable.getIntrinsicWidth();
+            int rightH = leftH + dividerHeight;
 //            int rightH = child.getLeft() - params.leftMargin;
 //            int leftH = rightH - dividerDrawable.getIntrinsicWidth();
-            dividerDrawable.setBounds(leftH, topH, rightH, bottomH);
-            dividerDrawable.draw(c);
-            dividerDrawable.setBounds(leftV, topV, rightV, bottomV);
-            dividerDrawable.draw(c);
+            // TODO: 2016/7/8 不能简单if...else
+            if (dividerDrawable != null) {
+                dividerDrawable.setBounds(leftH, topH, rightH, bottomH);
+                dividerDrawable.draw(c);
+                dividerDrawable.setBounds(leftV, topV, rightV, bottomV);
+                dividerDrawable.draw(c);
+            } else if (dividerPaint != null) {
+                c.drawRect(leftH, topH, rightH, bottomH, dividerPaint);
+                c.drawRect(leftV, topV, rightV, bottomV, dividerPaint);
+            }
         }
     }
 

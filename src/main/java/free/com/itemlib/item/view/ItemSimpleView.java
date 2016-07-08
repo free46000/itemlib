@@ -2,7 +2,6 @@ package free.com.itemlib.item.view;
 
 import android.content.Context;
 import android.view.View;
-import android.view.ViewGroup;
 
 import free.com.itemlib.item.view.content.ItemSimple;
 

@@ -10,7 +10,7 @@ import free.com.itemlib.item.view.ItemViewHolder;
 /**
  * Created by wzx on 2016/7/5.
  */
-public class ItemSimple extends ItemBase {
+public class ItemSimple extends ItemImpl {
     private View itemView;
     private int itemViewLayoutId;
 

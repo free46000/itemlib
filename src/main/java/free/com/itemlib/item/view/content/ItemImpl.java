@@ -11,7 +11,7 @@ import free.com.itemlib.item.view.ItemViewHolder;
 /**
  * Created by ZX on 2015/9/23.
  */
-public abstract class ItemBase implements Item {
+public abstract class ItemImpl implements Item {
     protected ItemEntity itemEntity;
     protected Object tag;
     protected String key;
@@ -24,11 +24,11 @@ public abstract class ItemBase implements Item {
     protected ItemLayoutParams itemParams;
 
 
-    public ItemBase() {
+    public ItemImpl() {
         this(null);
     }
 
-    public ItemBase(ItemEntity itemEntity) {
+    public ItemImpl(ItemEntity itemEntity) {
         this.itemEntity = itemEntity;
     }
 

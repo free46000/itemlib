@@ -6,7 +6,7 @@ import free.com.itemlib.item.view.common.Validate;
 /**
  * Created by free46000 on 2015/5/18 0018.
  */
-public abstract class ItemInput extends ItemBase {
+public abstract class ItemInput extends ItemImpl {
     protected String viewTypeStr;
     protected Validate.Rule rule;
 

@@ -9,7 +9,7 @@ import android.content.Context;
 import android.view.ViewGroup;
 
 
-public class ItemLoadMore extends ItemBase {
+public class ItemLoadMore extends ItemImpl {
     protected OnLoadMoreListener onLoadMoreListener;
     public ItemLoadMoreView itemViewHolder;
     protected boolean isAutoLoadMore;

@@ -3,9 +3,7 @@ package free.com.itemlib;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
@@ -14,14 +12,12 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import free.com.itemlib.item.BaseItemAdapter;
 import free.com.itemlib.item.OnLoadMoreListener;
-import free.com.itemlib.item.animation.SlideInBottomAnimation;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
-import free.com.itemlib.item.view.content.ItemBase;
+import free.com.itemlib.item.view.content.ItemImpl;
 
 public class MainActivity extends Activity {
     private RecyclerView recyclerView;
@@ -109,7 +105,7 @@ public class MainActivity extends Activity {
 
     static int i;
 
-    class ItemText extends ItemBase {
+    class ItemText extends ItemImpl {
         private String value;
 
         public ItemText(String value) {

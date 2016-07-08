@@ -15,7 +15,7 @@ import free.com.itemlib.item.view.ItemViewHolder;
 /**
  * Created by free46000 on 2015/5/14 0014.
  */
-public class ItemGroup extends ItemBase {
+public class ItemGroup extends ItemImpl {
     private List<Item> itemList;
     protected boolean isInterceptItemClick = true;
     protected boolean isInterceptItemChildClick = false;
