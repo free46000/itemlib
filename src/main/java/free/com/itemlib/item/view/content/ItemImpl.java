@@ -18,7 +18,7 @@ public abstract class ItemImpl implements Item {
     protected boolean clickable = true;
     protected boolean touchable = false;
     protected boolean isFullSpan = false;
-    protected int backResId;
+    protected int backResId = -1;
     protected boolean activated;
     protected int shrinkLength;
     protected ItemLayoutParams itemParams;

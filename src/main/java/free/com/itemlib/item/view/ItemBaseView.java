@@ -9,9 +9,9 @@ import free.com.itemlib.item.view.content.ItemSimple;
 /**
  * Created by wzx on 2016/7/5.
  */
-public class ItemBaseView extends ItemViewHolder<ItemBase> {
+public class ItemBaseView<T extends ItemBase> extends ItemViewHolder<T> {
 
-    public ItemBaseView(Context context, ItemBase item) {
+    public ItemBaseView(Context context, T item) {
         super(context, item);
     }
 
@@ -21,7 +21,7 @@ public class ItemBaseView extends ItemViewHolder<ItemBase> {
     }
 
     @Override
-    public void setData(ItemBase itemBase) {
+    public void setData(T itemBase) {
         itemBase.fillData(itemView);
     }
 }

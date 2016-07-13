@@ -4,40 +4,35 @@ import android.content.Context;
 import android.view.View;
 
 import free.com.itemlib.item.view.content.Item;
+import free.com.itemlib.item.view.content.ItemBase;
+import free.com.itemlib.item.view.content.ItemInput;
 
 
 /**
  * Created by free46000 on 2015/5/18 0018.
  */
-public abstract class ItemInputView<T extends Item> extends ItemViewHolder<T> {
-    protected T item;
+public class ItemInputView extends ItemBaseView<ItemInput> {
 
-    public ItemInputView(Context context, T item) {
+    public ItemInputView(Context context, ItemInput item) {
         super(context, item);
-        this.item = item;
     }
-
-    @Override
-    protected View initItemView() {
-        return initItemView(item);
-    }
-
-    protected abstract View initItemView(T item);
 
     @Deprecated
     @Override
     /**
      * 输入View不需要setData
      */
-    public void setData(T itemContent) {
+    public void setData(ItemInput itemContent) {
     }
 
     @Override
-    public abstract Object getValue();
+    public Object getValue() {
+        return currItem.getValue(itemView);
+    }
 
     @Override
     public String getKey() {
-        return item.getKey();
+        return currItem.getKey();
     }
 
 }

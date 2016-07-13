@@ -1,6 +1,7 @@
 package free.com.itemlib.item.view.content;
 
 import android.content.Context;
+import android.view.View;
 import android.view.ViewGroup;
 
 import free.com.itemlib.item.view.ItemHiddenView;
@@ -26,7 +27,18 @@ public class ItemHidden extends ItemInput {
         return new ItemHiddenView(context, this);
     }
 
-    public CharSequence getValue() {
+    @Override
+    public View initItemView(Context context) {
+        return new View(context);
+    }
+
+    @Override
+    public void fillData(View itemView) {
+
+    }
+
+    @Override
+    public Object getValue(View itemVie) {
         return value;
     }
 
