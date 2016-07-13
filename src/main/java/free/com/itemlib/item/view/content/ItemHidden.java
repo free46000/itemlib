@@ -2,10 +2,6 @@ package free.com.itemlib.item.view.content;
 
 import android.content.Context;
 import android.view.View;
-import android.view.ViewGroup;
-
-import free.com.itemlib.item.view.ItemHiddenView;
-import free.com.itemlib.item.view.ItemViewHolder;
 
 /**
  * Created by free46000 on 2015/6/16 0016.
@@ -22,10 +18,6 @@ public class ItemHidden extends ItemInput {
         this.value = value;
     }
 
-    @Override
-    public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
-        return new ItemHiddenView(context, this);
-    }
 
     @Override
     public View initItemView(Context context) {
