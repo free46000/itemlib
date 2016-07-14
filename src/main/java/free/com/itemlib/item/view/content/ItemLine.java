@@ -14,7 +14,7 @@ import free.com.itemlib.item.view.ItemViewHolder;
 /**
  * Created by ZX on 2015/10/16.
  */
-public class ItemLine extends ItemBase {
+public class ItemLine extends ItemImpl {
     private int lineDrawableResId = R.color.item_line_color;
     private float lineSizeInDP = 1;
 

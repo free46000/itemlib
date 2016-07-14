@@ -3,6 +3,7 @@ package free.com.itemlib.item.view;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import free.com.itemlib.item.OnLoadMoreListener;
@@ -23,12 +24,15 @@ public class ItemLoadMoreView extends ItemViewHolder<ItemLoadMore> {
     @Override
     protected View initItemView() {
         loadMoreListener = currItem.getOnLoadMoreListener();
+        LinearLayout linearLayout = new LinearLayout(context);
         loadMoreView = new TextView(context);
         loadMoreView.setPadding(3, 30, 3, 30);
         loadMoreView.setGravity(Gravity.CENTER);
         loadMoreView.setTextColor(0Xff515151);
         loadMoreView.setTextSize(15);
-        return loadMoreView;
+        linearLayout.addView(loadMoreView);
+        updateLoadMoreText(1);
+        return linearLayout;
     }
 
     @Override
@@ -38,15 +42,15 @@ public class ItemLoadMoreView extends ItemViewHolder<ItemLoadMore> {
 
     @Override
     public void setData(ItemLoadMore item) {
-        if (item.isAutoLoadMore()){
-            loadMoreListener.onLoadMore();
+        if (item.isAutoLoadMore()) {
+            onLoadMore();
         }
     }
 
 
     private void onLoadMore() {
-        loadMoreView.setText(loadingStr);
-            loadMoreListener.onLoadMore();
+        updateLoadMoreText(3);
+        loadMoreListener.onLoadMore();
     }
 
     /**
@@ -60,13 +64,13 @@ public class ItemLoadMoreView extends ItemViewHolder<ItemLoadMore> {
      * @param isLoadAll 是否加载完全部数据
      */
     public void loadComplete(boolean isLoadAll) {
-        updateData(isLoadAll ? 2 : 1);
+        updateLoadMoreText(isLoadAll ? 2 : 1);
     }
 
     /**
      * @param state 1:has more 2:load all 3:loading
      */
-    protected void updateData(int state) {
+    protected void updateLoadMoreText(int state) {
         if (state == 1) {
             loadMoreView.setText(loadMoreStr);
             loadMoreView.setOnClickListener(loadMoreListener);

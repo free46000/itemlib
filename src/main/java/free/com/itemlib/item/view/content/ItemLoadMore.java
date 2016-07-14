@@ -9,8 +9,8 @@ import android.content.Context;
 import android.view.ViewGroup;
 
 
-public class ItemLoadMore extends ItemBase {
-    protected OnLoadMoreListener mOnLoadMoreListener;
+public class ItemLoadMore extends ItemImpl {
+    protected OnLoadMoreListener onLoadMoreListener;
     public ItemLoadMoreView itemViewHolder;
     protected boolean isAutoLoadMore;
 
@@ -19,16 +19,21 @@ public class ItemLoadMore extends ItemBase {
     }
 
     /**
-     *
      * @param loadMoreListener
-     * @param isAutoLoadMore 是否需要滑动到就自动加载
+     * @param isAutoLoadMore   是否需要滑动到就自动加载
      */
     public ItemLoadMore(OnLoadMoreListener loadMoreListener, boolean isAutoLoadMore) {
         if (loadMoreListener == null) {
             throw new NullPointerException();
         }
-        this.mOnLoadMoreListener = loadMoreListener;
+        this.onLoadMoreListener = loadMoreListener;
         this.isAutoLoadMore = isAutoLoadMore;
+    }
+
+    public void setLoadComplete(boolean isLoadAll) {
+        if (itemViewHolder != null) {
+            itemViewHolder.loadComplete(isLoadAll);
+        }
     }
 
     @Override
@@ -39,7 +44,7 @@ public class ItemLoadMore extends ItemBase {
     }
 
     public OnLoadMoreListener getOnLoadMoreListener() {
-        return mOnLoadMoreListener;
+        return onLoadMoreListener;
     }
 
     public boolean isAutoLoadMore() {

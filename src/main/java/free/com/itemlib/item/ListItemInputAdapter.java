@@ -1,6 +1,7 @@
 package free.com.itemlib.item;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -85,7 +86,7 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
     public Map<String, Object> getInputValueMap() {
         Map<String, Object> map = new HashMap<>();
         for (ItemViewHolder iiv : itemInputViewMap.values()) {
-            if (iiv.getKey() != null && !iiv.getKey().isEmpty()) {
+            if (!TextUtils.isEmpty(iiv.getKey())) {
                 map.put(iiv.getKey(), iiv.getValue());
             }
         }

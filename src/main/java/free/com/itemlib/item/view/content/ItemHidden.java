@@ -1,10 +1,7 @@
 package free.com.itemlib.item.view.content;
 
 import android.content.Context;
-import android.view.ViewGroup;
-
-import free.com.itemlib.item.view.ItemHiddenView;
-import free.com.itemlib.item.view.ItemViewHolder;
+import android.view.View;
 
 /**
  * Created by free46000 on 2015/6/16 0016.
@@ -21,12 +18,19 @@ public class ItemHidden extends ItemInput {
         this.value = value;
     }
 
+
     @Override
-    public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
-        return new ItemHiddenView(context, this);
+    public View initItemView(Context context) {
+        return new View(context);
     }
 
-    public CharSequence getValue() {
+    @Override
+    public void fillData(View itemView) {
+
+    }
+
+    @Override
+    public Object getValue(View itemVie) {
         return value;
     }
 

@@ -1,6 +1,13 @@
 package free.com.itemlib.item.view.content;
 
 
+import android.content.Context;
+import android.content.res.ObbInfo;
+import android.view.View;
+import android.view.ViewGroup;
+
+import free.com.itemlib.item.view.ItemInputView;
+import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.common.Validate;
 
 /**
@@ -17,6 +24,11 @@ public abstract class ItemInput extends ItemBase {
         this.key = key;
     }
 
+    @Override
+    public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
+        return new ItemInputView(context, this);
+    }
+
     public Validate.Rule getRule() {
         return rule;
     }
@@ -24,4 +36,7 @@ public abstract class ItemInput extends ItemBase {
     public void setRule(Validate.Rule rule) {
         this.rule = rule;
     }
+
+    public abstract Object getValue(View itemVie);
+
 }
