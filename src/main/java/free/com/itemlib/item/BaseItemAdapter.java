@@ -22,7 +22,7 @@ import free.com.itemlib.item.view.content.ItemSimple;
 import free.com.itemlib.item.view.content.ItemLoadMore;
 
 // TODO: 2016/7/5 0005 notifyItemRangeInserted notifyItemInserted notifyItemRangeRemoved...
-// TODO: 2016/7/5 0005 loadMore 功能(onbindview的时候传给ItemLoadMore，然后设置是否自动加载或者加载完成)
+// TODO: 2016/7/5 0005 loadMore 功能(布局调整)
 public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.RecyclerViewHolder> {
     protected final List<String> mTypeList = new ArrayList<>();
     protected final List<Item> mTypeItemList = new ArrayList<>();
