@@ -14,7 +14,7 @@ import free.com.itemlib.item.view.ItemViewHolder;
 public abstract class ItemBase extends ItemImpl {
     @Override
     public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
-        return new ItemBaseView(context, this);
+        return new ItemBaseView<>(context, this);
     }
 
     public abstract View initItemView(Context context);

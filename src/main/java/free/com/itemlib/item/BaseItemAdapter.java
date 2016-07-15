@@ -213,20 +213,11 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     @Override
     public void onBindViewHolder(RecyclerViewHolder holder, int position) {
         ItemViewHolder itemHolder = holder.itemViewHolder;
-        Item item = getItem(position);
-        if (item.isClickable()) {
-            itemHolder.setOnItemClickListener(onItemClickListener);
-            itemHolder.setOnItemLongClickListener(onItemLongClickListener);
-        }
-//        else {
-//            itemHolder.setOnItemClickListener(null);
-//            itemHolder.setOnItemLongClickListener(null);
-//        }
         holder.itemView.setTag(itemHolder);
         ItemViewHolder.ViewHolderParams params = new ItemViewHolder.ViewHolderParams()
                 .setItemLocation(position).setItemCount(getItemCount()).setClickListener(onItemClickListener)
                 .setLongClickListener(onItemLongClickListener);
-        itemHolder.populateItemView(item, params);
+        itemHolder.populateItemView(getItem(position), params);
         addAnimation(itemHolder);
     }
 
