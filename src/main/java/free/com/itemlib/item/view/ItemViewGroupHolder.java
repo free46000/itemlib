@@ -5,9 +5,10 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import free.com.itemlib.item.OnItemClickListener;
 import free.com.itemlib.item.OnItemLongClickListener;
@@ -149,5 +150,24 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
                 viewHolderList.get(i).setOnItemLongClickListener(listener);
             }
         }
+    }
+
+    @Override
+    public Object getValue() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < viewHolderList.size(); i++) {
+            sb.append(viewHolderList.get(i).getValue());
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public Map<String, Object> getValueMap() {
+        Map<String, Object> map = new HashMap<>();
+        for (int i = 0; i < viewHolderList.size(); i++) {
+            if (viewHolderList.get(i).getValueMap() != null)
+                map.putAll(viewHolderList.get(i).getValueMap());
+        }
+        return map;
     }
 }

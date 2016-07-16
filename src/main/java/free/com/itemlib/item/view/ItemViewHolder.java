@@ -4,6 +4,9 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import free.com.itemlib.R;
 import free.com.itemlib.item.OnItemClickListener;
 import free.com.itemlib.item.OnItemLongClickListener;
@@ -107,10 +110,11 @@ public abstract class ItemViewHolder<T extends Item> {
         if (itemContent.isClickable()) {
             setOnItemClickListener(params.clickListener);
             setOnItemLongClickListener(params.longClickListener);
-        } else {
-            setOnItemClickListener(null);
-            setOnItemLongClickListener(null);
         }
+//        else {
+//            setOnItemClickListener(null);
+//            setOnItemLongClickListener(null);
+//        }
 
 //        System.out.println("populateItemView:" + params.listViewScrollState + "==" + params.itemLocation);
 
@@ -249,12 +253,32 @@ public abstract class ItemViewHolder<T extends Item> {
     public void setShrink(T itemContent) {
     }
 
+    /**
+     * 获取当前ViewHolder的对应Value
+     *
+     * @return
+     */
     public Object getValue() {
-        return "";
+        return null;
+    }
+
+    /**
+     * 获取当前ViewHolder的对应Value Map,key为{@link #getKey} ,value为{@link #getValue},
+     * 主要提供给InputAdapter使用
+     *
+     * @return
+     */
+    public Map<String, Object> getValueMap() {
+        if (getKey() == null || getValue() == null) {
+            return null;
+        }
+        Map<String, Object> map = new HashMap<>(1);
+        map.put(getKey(), getValue());
+        return map;
     }
 
     public String getKey() {
-        return "";
+        return currItem == null ? null : currItem.getKey();
     }
 
     public static class ViewHolderParams {

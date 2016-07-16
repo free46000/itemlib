@@ -2,9 +2,10 @@ package free.com.itemlib.item.view.content;
 
 
 import android.content.Context;
-import android.content.res.ObbInfo;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.util.Map;
 
 import free.com.itemlib.item.view.ItemInputView;
 import free.com.itemlib.item.view.ItemViewHolder;
@@ -26,7 +27,7 @@ public abstract class ItemInput extends ItemBase {
 
     @Override
     public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
-        return new ItemInputView(context, this);
+        return new ItemInputView<>(context, this);
     }
 
     public Validate.Rule getRule() {
@@ -37,6 +38,19 @@ public abstract class ItemInput extends ItemBase {
         this.rule = rule;
     }
 
-    public abstract Object getValue(View itemVie);
+    @Override
+    public void fillData(View itemView) {
 
+    }
+
+    public abstract Object getValue(View itemView);
+
+    public Map<String, Object> getValueMap(View itemView) {
+        return null;
+    }
+
+    @Override
+    public boolean isClickable() {
+        return super.isClickable();
+    }
 }
