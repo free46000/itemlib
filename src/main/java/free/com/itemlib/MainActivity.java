@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
@@ -29,7 +30,6 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
-
         TextView headView = new TextView(this);
         headView.setText("11\n11111\n11111\n11111\n111\n1fasjfjdkasfj");
         headView.setHeight(100);
@@ -58,8 +58,8 @@ public class MainActivity extends Activity {
 
 
         baseItemAdapter.setDataItemList(getItemList());
-        baseItemAdapter.addHeadView(headView, headView1, headView2, headView3);
-        baseItemAdapter.addFootView(footView);
+//        baseItemAdapter.addHeadView(headView, headView1, headView2, headView3);
+//        baseItemAdapter.addFootView(footView);
         baseItemAdapter.addLoadMoreView(new OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
@@ -70,26 +70,27 @@ public class MainActivity extends Activity {
                 baseItemAdapter.addDataItem(new ItemText
                         ("EEEEE"));
                 baseItemAdapter.setLoadComplete(false);
-                new Handler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        baseItemAdapter.notifyDataSetChanged();
-
-                    }
-                });
+//                new Handler().post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        baseItemAdapter.notifyDataSetChanged();
+//
+//                    }
+//                });
 
             }
         }, false);
 //        baseItemAdapter.openLoadAnimation(new SlideInBottomAnimation(), false);
-        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        // TODO: 2016/7/17 0017 解决 LinearLayoutManager下宽度不能填充满，其实这种情况可以使用ListView
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(baseItemAdapter);
         recyclerView.addItemDecoration(new GridItemDecoration(this, R.drawable.list_divider));
     }
 
     private List<Item> getItemList() {
         List<Item> list = new ArrayList<>();
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 5; i++) {
             if (i % 5 == 0) {
                 list.add(new ItemText(i + "fdsagsaadfdasfasfdasfdasfdasfdgagsaggasg" + i) {
                     @Override
@@ -134,7 +135,7 @@ public class MainActivity extends Activity {
                 TextView textView = new TextView(context);
                 textView.setText("111111111111111111111");
                 textView.setHeight(100);
-//                textView.setBackgroundColor(0xFFBBBBBB);
+                textView.setBackgroundColor(0xFFFFFFFF);
                 return textView;
             }
 
@@ -145,6 +146,7 @@ public class MainActivity extends Activity {
 //                    itemView.setBackgroundColor(0xFFDD66CC);
                     ((TextView) itemView).setHeight(60);
                 }
+//                itemView.getLayoutParams().width = -2;
             }
         }
 

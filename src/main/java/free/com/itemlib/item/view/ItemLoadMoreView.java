@@ -2,6 +2,7 @@ package free.com.itemlib.item.view;
 
 import android.content.Context;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -30,9 +31,9 @@ public class ItemLoadMoreView extends ItemViewHolder<ItemLoadMore> {
         loadMoreView.setGravity(Gravity.CENTER);
         loadMoreView.setTextColor(0Xff515151);
         loadMoreView.setTextSize(15);
-        linearLayout.addView(loadMoreView);
+//        linearLayout.addView(loadMoreView);
         updateLoadMoreText(1);
-        return linearLayout;
+        return loadMoreView;
     }
 
     @Override

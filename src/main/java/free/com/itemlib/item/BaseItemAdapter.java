@@ -22,7 +22,6 @@ import free.com.itemlib.item.view.content.ItemSimple;
 import free.com.itemlib.item.view.content.ItemLoadMore;
 
 // TODO: 2016/7/5 0005 notifyItemRangeInserted notifyItemInserted notifyItemRangeRemoved...
-// TODO: 2016/7/5 0005 loadMore 功能(布局调整)
 public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.RecyclerViewHolder> {
     protected final List<String> mTypeList = new ArrayList<>();
     protected final List<Item> mTypeItemList = new ArrayList<>();
@@ -73,6 +72,10 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         }
     }
 
+    public int getHeadCount() {
+        return headItemList.size();
+    }
+
     public void addFootView(View... views) {
         if (views == null || views.length == 0) {
             return;
@@ -110,6 +113,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     private void addData(List<? extends Item> itemList) {
         dataItemList.addAll(itemList);
         addShrinkParams(itemList);
+        notifyItemRangeInserted(dataItemList.size() - 1 + getHeadCount(), itemList.size());
     }
 
     private void addShrinkParams(List<? extends Item> itemList) {
@@ -188,7 +192,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     public RecyclerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         //viewType的位置对应最新的Item，详情getItemViewType
         Item item = mTypeItemList.get(viewType);
-        ItemViewHolder itemViewHolder = item.newItemViewHolder(context);
+        ItemViewHolder itemViewHolder = item.newItemViewHolder(context, parent);
         View view = itemViewHolder.getItemView();
         RecyclerViewHolder myViewHolder = new RecyclerViewHolder(view);
         myViewHolder.itemViewHolder = itemViewHolder;
