@@ -17,7 +17,7 @@ public class ItemBaseView<T extends ItemBase> extends ItemViewHolder<T> {
 
     @Override
     protected View initItemView() {
-        return currItem.initItemView(context);
+        return currItem.initItemView(context, parentViewGroup);
     }
 
     @Override

@@ -51,6 +51,6 @@ public abstract class ItemInput extends ItemBase {
 
     @Override
     public boolean isClickable() {
-        return super.isClickable();
+        return false;
     }
 }

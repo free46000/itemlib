@@ -17,7 +17,7 @@ public abstract class ItemBase extends ItemImpl {
         return new ItemBaseView<>(context, this);
     }
 
-    public abstract View initItemView(Context context);
+    public abstract View initItemView(Context context, ViewGroup viewGroup);
 
     public abstract void fillData(View itemView);
 

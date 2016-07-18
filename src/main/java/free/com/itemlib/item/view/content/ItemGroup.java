@@ -5,7 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 
-
 import java.util.List;
 
 import free.com.itemlib.item.ItemEntity;
@@ -62,6 +61,11 @@ public class ItemGroup extends ItemImpl {
             sb.append(item.getItemViewType());
         }
         return sb.toString();
+    }
+
+    @Override
+    public String getKey() {
+        return "ItemGroup";
     }
 
     @Override

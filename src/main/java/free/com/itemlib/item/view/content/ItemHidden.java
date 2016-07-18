@@ -2,6 +2,7 @@ package free.com.itemlib.item.view.content;
 
 import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
 
 /**
  * Created by free46000 on 2015/6/16 0016.
@@ -20,7 +21,7 @@ public class ItemHidden extends ItemInput {
 
 
     @Override
-    public View initItemView(Context context) {
+    public View initItemView(Context context, ViewGroup viewGroup) {
         return new View(context);
     }
 

@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import free.com.itemlib.item.view.ItemViewGroupHolder;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.common.Validate;
 import free.com.itemlib.item.view.content.Item;
@@ -29,6 +30,7 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
      */
     protected Map<Integer, ItemViewHolder> itemInputViewMap = new LinkedHashMap<>();
     protected List<ItemViewHolder> itemHiddenInputViewList = new ArrayList<>();
+    protected List<ItemViewHolder> itemInputViewList = new ArrayList<>();
     protected StringBuilder originSB = new StringBuilder();
 
     public ListItemInputAdapter(Context context) {
@@ -72,15 +74,42 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         //自己管理输入View，因为输入型View不能被覆盖，最后取值会用到
-        if (itemInputViewMap.containsKey(position)) {
-            convertView = itemInputViewMap.get(position).getItemView();
-        } else {
-            convertView = getViewByLocation(position);
-            ItemViewHolder tag = (ItemViewHolder) convertView.getTag();
-            itemInputViewMap.put(position, tag);
-            originSB.append(tag.getValue());
+        if (!itemInputViewMap.containsKey(position)) {
+            initAllInputView();
         }
+        convertView = itemInputViewMap.get(position).getItemView();
         return super.getView(position, convertView, parent);
+    }
+
+    private void initAllInputView() {
+        for (int i = 0; i < getCount(); i++) {
+            getViewByLocation(i);
+        }
+    }
+
+    @Override
+    protected View getViewByLocation(int position) {
+        View convertView = super.getViewByLocation(position);
+        ItemViewHolder tag = (ItemViewHolder) convertView.getTag();
+        fillItemViewHolderList(tag, itemInputViewList);
+        itemInputViewMap.put(position, tag);
+        originSB.append(tag.getValue());
+        return convertView;
+    }
+
+    /**
+     * 获取全部的ItemViewHolder，包括ItemViewGroupHolder里面的
+     */
+    private void fillItemViewHolderList(ItemViewHolder viewHolder, List<ItemViewHolder>
+            list) {
+        if (viewHolder instanceof ItemViewGroupHolder) {
+            List<ItemViewHolder> viewHolders = ((ItemViewGroupHolder) viewHolder).getViewHolderList();
+            for (int i = 0; i < viewHolders.size(); i++) {
+                fillItemViewHolderList(viewHolders.get(i), list);
+            }
+        }
+
+        list.add(viewHolder);
     }
 
     public Map<String, Object> getInputValueMap() {
@@ -102,13 +131,14 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
 
     public boolean isValueValidate() {
         List<Validate.Rule> ruleList = new ArrayList<>();
-        for (ItemViewHolder iiv : itemInputViewMap.values()) {
+        for (ItemViewHolder iiv : itemInputViewList) {
             if (iiv.getCurrItem() instanceof ItemInput) {
                 ItemInput itemInput = (ItemInput) iiv.getCurrItem();
                 Validate.Rule rule = itemInput.getRule();
-                rule.value = iiv.getValue().toString();
-                if (rule != null)
-                    ruleList.add(itemInput.getRule());
+                if (rule != null) {
+                    rule.value = iiv.getValue().toString();
+                    ruleList.add(rule);
+                }
             }
         }
         return Validate.validateRules(context, ruleList);

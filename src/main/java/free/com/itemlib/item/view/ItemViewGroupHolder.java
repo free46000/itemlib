@@ -32,6 +32,10 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         }
     }
 
+    public List<ItemViewHolder> getViewHolderList() {
+        return viewHolderList;
+    }
+
     private void initItemViewHolderList(List<Item> itemList) {
         if (itemList == null) {
             throw new IllegalArgumentException("ItemViewGroupHolder初始化itemList不能为null");
