@@ -20,7 +20,7 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
 
     public ItemViewGroupHolder(Context context, T itemGroup) {
         super(context, itemGroup);
-        initItemViewHolderList(itemGroup.getItemList());
+        viewHolderList = initItemViewHolderList(itemGroup.getItemList());
     }
 
     @Override
@@ -36,14 +36,15 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         return viewHolderList;
     }
 
-    private void initItemViewHolderList(List<Item> itemList) {
+    protected List<ItemViewHolder> initItemViewHolderList(List<Item> itemList) {
         if (itemList == null) {
             throw new IllegalArgumentException("ItemViewGroupHolder初始化itemList不能为null");
         }
-        viewHolderList = new ArrayList<>();
+        List<ItemViewHolder> viewHolderList = new ArrayList<>();
         for (Item item : itemList) {
             viewHolderList.add(item.newItemViewHolder(context));
         }
+        return viewHolderList;
     }
 
 

@@ -115,8 +115,9 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
     public Map<String, Object> getInputValueMap() {
         Map<String, Object> map = new HashMap<>();
         for (ItemViewHolder iiv : itemInputViewMap.values()) {
-            if (!TextUtils.isEmpty(iiv.getKey()) && iiv.getValueMap() != null) {
-                map.putAll(iiv.getValueMap());
+            Map<String, Object> valueMap = iiv.getValueMap();
+            if (!TextUtils.isEmpty(iiv.getKey()) && valueMap != null) {
+                map.putAll(valueMap);
             }
         }
         for (ItemViewHolder iiv : itemHiddenInputViewList) {

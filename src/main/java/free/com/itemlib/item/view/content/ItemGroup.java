@@ -32,18 +32,34 @@ public class ItemGroup extends ItemImpl {
         this.itemList = itemList;
     }
 
+    /**
+     * 设置是否拦截Item的点击事件
+     */
     public void setIsInterceptItemClick(boolean isInterceptItemClick) {
         this.isInterceptItemClick = isInterceptItemClick;
     }
 
+    /**
+     * 设置是否拦截Item的Child点击事件
+     */
     public void setIsInterceptItemChildClick(boolean isInterceptItemChildClick) {
         this.isInterceptItemChildClick = isInterceptItemChildClick;
     }
 
+    /**
+     * 是否拦截Item的点击事件
+     *
+     * @return true：则点击事件落在ItemGroup上，不向下传递
+     */
     public boolean isInterceptItemClick() {
         return isInterceptItemClick;
     }
 
+    /**
+     * 是否拦截Item的Child点击事件
+     *
+     * @return true：则Child点击事件落在ItemGroup上，不向下传递
+     */
     public boolean isInterceptItemChildClick() {
         return isInterceptItemChildClick;
     }

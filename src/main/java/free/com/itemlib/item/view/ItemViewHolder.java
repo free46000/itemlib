@@ -224,8 +224,9 @@ public abstract class ItemViewHolder<T extends Item> {
     }
 
     /**
+     *
+     * {@link #getItemView()}
      * @return itemView
-     * @see #getItemView()
      */
     protected abstract View initItemView();
 
@@ -277,6 +278,11 @@ public abstract class ItemViewHolder<T extends Item> {
         return map;
     }
 
+    /**
+     * 获取Item的key，主要作用于ItemInput模式中对应value
+     *
+     * @return key
+     */
     public String getKey() {
         return currItem == null ? null : currItem.getKey();
     }
