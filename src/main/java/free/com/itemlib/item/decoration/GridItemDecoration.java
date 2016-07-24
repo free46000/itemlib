@@ -1,4 +1,4 @@
-package free.com.itemlib;
+package free.com.itemlib.item.decoration;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,33 +9,27 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import free.com.itemlib.item.decoration.divider.Divider;
+import free.com.itemlib.item.decoration.divider.DividerDrawable;
+import free.com.itemlib.item.decoration.divider.DividerRect;
+
 /**
- * https://github.com/CymChad/BaseRecyclerViewAdapterHelper
+ *
  */
 public class GridItemDecoration extends RecyclerView.ItemDecoration {
 
-    private Drawable dividerDrawable;
-    private Paint dividerPaint;
-    private int dividerHeight;
-    private int dividerWidth;
-    private int orientation = LinearLayoutManager.VERTICAL;
+    private Divider divider;
 
-    public GridItemDecoration(Drawable divider) {
-        dividerDrawable = divider;
+    public GridItemDecoration(Drawable dividerDrawable) {
+        divider = new DividerDrawable(dividerDrawable);
     }
 
     public GridItemDecoration(Context context, int resId) {
-        dividerDrawable = context.getResources().getDrawable(resId);
-        dividerHeight = dividerDrawable.getIntrinsicHeight();
-        dividerWidth = dividerDrawable.getIntrinsicWidth();
+        divider = new DividerDrawable(context, resId);
     }
 
-    public GridItemDecoration(Context context, int dividerColor, int dividerHeight) {
-        this.dividerHeight = dividerHeight;
-        this.dividerWidth = dividerHeight;
-        dividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        dividerPaint.setColor(dividerColor);
-        dividerPaint.setStyle(Paint.Style.FILL);
+    public GridItemDecoration(Context context, int dividerColor, int dividerSize) {
+        divider = new DividerRect(dividerColor, dividerSize);
     }
 
     // TODO: 2016/7/17 0017 四周边框实现 可以再最外层设置分割线，然后本类实现是否展示最后一行（需根据spansize和isFullSpan判断）分割线
@@ -49,16 +43,12 @@ public class GridItemDecoration extends RecyclerView.ItemDecoration {
     //目前竖向上实现逻辑正常，画在视图的下方并且不占用Item空间
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-        if (dividerDrawable == null) {
-            return;
-        }
-
         //判断是不是最后一个，如果是表格布局则不能代表是否为最后一行
-        if (parent.getChildLayoutPosition(view) == state.getItemCount()-1) {
+        if (parent.getChildLayoutPosition(view) == state.getItemCount() - 1) {
         }
 
         //使item下方留出分割线空间
-        outRect.bottom = dividerHeight;
+        outRect.bottom = (int) divider.getHeight();
 //        outRect.right = dividerWidth;
 //        outRect.left = dividerDrawable.getIntrinsicWidth();
 //        if (orientation == LinearLayoutManager.VERTICAL) {
@@ -74,7 +64,7 @@ public class GridItemDecoration extends RecyclerView.ItemDecoration {
      * @param state
      */
     @Override
-    public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
+    public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
         int childCount = parent.getChildCount();
 //        int rightV = parent.getWidth();
         for (int i = 0; i < childCount; i++) {
@@ -82,31 +72,24 @@ public class GridItemDecoration extends RecyclerView.ItemDecoration {
             RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child.getLayoutParams();
 
             //横向分割线的测量值
-            int leftV = parent.getPaddingLeft() + child.getPaddingLeft();
-            int rightV = child.getRight() + params.rightMargin;
+            int leftV = child.getLeft();
+            int rightV = child.getRight();
 //            int bottomV = child.getTop() - params.topMargin;
 //            int topV = bottomV - dividerHeight;
-            int topV = child.getBottom() + params.bottomMargin;
-            int bottomV = topV + dividerHeight;
+            int topV = child.getBottom();
+            int bottomV = topV + (int) divider.getHeight();
 
 
             //纵向分割线的测量值
-            int topH = child.getTop() + params.topMargin;
-            int bottomH = child.getBottom() + params.bottomMargin + dividerHeight;
-            int leftH = child.getRight() + params.rightMargin;
-            int rightH = leftH + dividerHeight;
+            int topH = child.getTop();
+            int bottomH = child.getBottom() + (int) divider.getHeight();//需要多画出来一个分割线的高度（即横向中少画的一块）
+            int leftH = child.getRight();
+            int rightH = leftH + (int) divider.getWidth();
 //            int rightH = child.getLeft() - params.leftMargin;
 //            int leftH = rightH - dividerDrawable.getIntrinsicWidth();
-            // TODO: 2016/7/8 不能简单if...else
-            if (dividerDrawable != null) {
-                dividerDrawable.setBounds(leftH, topH, rightH, bottomH);
-                dividerDrawable.draw(c);
-                dividerDrawable.setBounds(leftV, topV, rightV, bottomV);
-                dividerDrawable.draw(c);
-            } else if (dividerPaint != null) {
-                c.drawRect(leftH, topH, rightH, bottomH, dividerPaint);
-                c.drawRect(leftV, topV, rightV, bottomV, dividerPaint);
-            }
+
+            divider.draw(c, leftH, topH, rightH, bottomH);
+            divider.draw(c, leftV, topV, rightV, bottomV);
         }
     }
 

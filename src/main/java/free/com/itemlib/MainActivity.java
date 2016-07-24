@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import free.com.itemlib.item.BaseItemAdapter;
+import free.com.itemlib.item.decoration.GridItemDecoration;
 import free.com.itemlib.item.listener.OnLoadMoreListener;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
