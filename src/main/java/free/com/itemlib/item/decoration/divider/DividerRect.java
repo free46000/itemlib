@@ -1,45 +1,46 @@
 package free.com.itemlib.item.decoration.divider;
 
-import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
 /**
+ * paint方式
+ *
  * Created by free46000 on 2016/7/24 0024.
  */
 public class DividerRect implements Divider {
-    private Paint dividerPaint;
-    private float dividerHeight;
-    private float dividerWidth;
+    private Paint mDividerPaint;
+    private float mDividerHeight;
+    private float mDividerWidth;
 
     public DividerRect(int dividerColor, float dividerSize) {
-        this.dividerHeight = dividerSize;
-        this.dividerWidth = dividerSize;
-        dividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        dividerPaint.setColor(dividerColor);
-        dividerPaint.setStyle(Paint.Style.FILL);
+        this.mDividerHeight = dividerSize;
+        this.mDividerWidth = dividerSize;
+        mDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mDividerPaint.setColor(dividerColor);
+        mDividerPaint.setStyle(Paint.Style.FILL);
     }
 
     public DividerRect(int dividerColor, float dividerHeight, float dividerWidth) {
-        this.dividerHeight = dividerHeight;
-        this.dividerWidth = dividerWidth;
-        dividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        dividerPaint.setColor(dividerColor);
-        dividerPaint.setStyle(Paint.Style.FILL);
+        this.mDividerHeight = dividerHeight;
+        this.mDividerWidth = dividerWidth;
+        mDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mDividerPaint.setColor(dividerColor);
+        mDividerPaint.setStyle(Paint.Style.FILL);
     }
 
     @Override
     public void draw(Canvas c, int left, int top, int right, int bottom) {
-        c.drawRect(left, top, right, bottom, dividerPaint);
+        c.drawRect(left, top, right, bottom, mDividerPaint);
     }
 
     @Override
     public float getHeight() {
-        return dividerHeight;
+        return mDividerHeight;
     }
 
     @Override
     public float getWidth() {
-        return dividerWidth;
+        return mDividerWidth;
     }
 }

@@ -17,9 +17,25 @@ public interface Item {
 
     Object getTag();
 
+    /**
+     * @return 是否全行展示，RecyclerView中用到
+     */
     boolean isFullSpan();
 
+    /**
+     * 设置是否全行展示，RecyclerView中用到
+     */
     void setIsFullSpan(boolean isFullSpan);
+
+    /**
+     * @return 是否展示分割线，RecyclerView中用到
+     */
+    boolean isShowDecoration();
+
+    /**
+     * 设置是否展示分割线，RecyclerView中用到
+     */
+    void setShowDecoration(boolean isShowDecoration);
 
     void setItemEntity(ItemEntity itemEntity);
 

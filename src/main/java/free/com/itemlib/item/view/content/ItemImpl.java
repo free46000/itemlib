@@ -18,6 +18,7 @@ public abstract class ItemImpl implements Item {
     protected boolean clickable = true;
     protected boolean touchable = false;
     protected boolean isFullSpan = false;
+    protected boolean isShowDecoration = true;
     protected int backResId = -1;
     protected boolean activated;
     protected int shrinkLength;
@@ -60,6 +61,16 @@ public abstract class ItemImpl implements Item {
     @Override
     public void setIsFullSpan(boolean isFullSpan) {
         this.isFullSpan = isFullSpan;
+    }
+
+    @Override
+    public boolean isShowDecoration() {
+        return isShowDecoration;
+    }
+
+    @Override
+    public void setShowDecoration(boolean isShowDecoration) {
+        this.isShowDecoration = isShowDecoration;
     }
 
     @Override

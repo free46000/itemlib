@@ -85,6 +85,21 @@ public abstract class ItemViewHolder<T extends Item> {
         return currItem.isFullSpan();
     }
 
+    /**
+     * {@link Item#setShowDecoration(boolean)}
+     */
+    public void setShowDecoration(boolean isShowDecoration) {
+        currItem.setShowDecoration(isShowDecoration);
+    }
+
+    /**
+     * {@linkplain Item#isShowDecoration()}
+     */
+    public boolean isShowDecoration() {
+        return currItem.isShowDecoration();
+    }
+
+
     //    * 设置背景根据 @link #getBackResID()返回值做逻辑处理并给tableItem赋值
 
     /**
@@ -224,8 +239,8 @@ public abstract class ItemViewHolder<T extends Item> {
     }
 
     /**
-     *
      * {@link #getItemView()}
+     *
      * @return itemView
      */
     protected abstract View initItemView();
