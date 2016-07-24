@@ -43,8 +43,8 @@ public class HorizontalItemDecoration extends ItemDecoration {
     @Override
     public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
         int childCount = parent.getChildCount();
-        int rightV = parent.getRight();
-        int leftV = parent.getLeft();
+//        int rightV = parent.getRight();
+//        int leftV = parent.getLeft();
         for (int i = 0; i < childCount; i++) {
             View child = parent.getChildAt(i);
 
@@ -53,8 +53,8 @@ public class HorizontalItemDecoration extends ItemDecoration {
             }
 
             //横向分割线的测量值
-//            int rightV = child.getRight();
-//            int leftV = child.getLeft();
+            int rightV = child.getRight();
+            int leftV = child.getLeft();
             int topV = child.getBottom();
             int bottomV = topV + (int) mDivider.getHeight();
 
