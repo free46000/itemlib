@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
         }, false);
 //        baseItemAdapter.openLoadAnimation(new SlideInBottomAnimation(), false);
 //        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-        // TODO: 2016/7/17 0017 解决 LinearLayoutManager下宽度不能填充满，其实这种情况可以使用ListView
+        //  TODO: 2016/7/17 0017 解决 LinearLayoutManager下宽度不能填充满，其实这种情况可以使用ListView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(baseItemAdapter);
         recyclerView.addItemDecoration(new HorizontalItemDecoration(this, R.drawable.list_divider));
