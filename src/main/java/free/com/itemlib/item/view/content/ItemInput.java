@@ -9,7 +9,7 @@ import java.util.Map;
 
 import free.com.itemlib.item.view.ItemInputView;
 import free.com.itemlib.item.view.ItemViewHolder;
-import free.com.itemlib.item.view.common.Validate;
+import free.com.itemlib.item.common.Validate;
 
 /**
  * Created by free46000 on 2015/5/18 0018.

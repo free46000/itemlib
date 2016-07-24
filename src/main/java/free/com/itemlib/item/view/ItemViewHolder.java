@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import free.com.itemlib.R;
-import free.com.itemlib.item.OnItemClickListener;
-import free.com.itemlib.item.OnItemLongClickListener;
+import free.com.itemlib.item.listener.OnItemClickListener;
+import free.com.itemlib.item.listener.OnItemLongClickListener;
 import free.com.itemlib.item.view.content.Item;
 
 

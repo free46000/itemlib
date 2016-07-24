@@ -1,6 +1,6 @@
 package free.com.itemlib.item.view.content;
 
-import free.com.itemlib.item.OnLoadMoreListener;
+import free.com.itemlib.item.listener.OnLoadMoreListener;
 import free.com.itemlib.item.view.ItemLoadMoreView;
 import free.com.itemlib.item.view.ItemViewHolder;
 

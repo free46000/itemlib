@@ -14,7 +14,7 @@ import java.util.Map;
 
 import free.com.itemlib.item.view.ItemViewGroupHolder;
 import free.com.itemlib.item.view.ItemViewHolder;
-import free.com.itemlib.item.view.common.Validate;
+import free.com.itemlib.item.common.Validate;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemHidden;
 import free.com.itemlib.item.view.content.ItemInput;

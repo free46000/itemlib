@@ -1,4 +1,4 @@
-package free.com.itemlib.item.view.common;
+package free.com.itemlib.item.common;
 
 
 import java.lang.reflect.Field;

@@ -2,11 +2,9 @@ package free.com.itemlib;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.Handler;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -15,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import free.com.itemlib.item.BaseItemAdapter;
-import free.com.itemlib.item.OnLoadMoreListener;
+import free.com.itemlib.item.listener.OnLoadMoreListener;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemImpl;

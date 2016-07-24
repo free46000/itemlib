@@ -16,6 +16,10 @@ import java.util.List;
 
 import free.com.itemlib.item.animation.BaseAnimation;
 import free.com.itemlib.item.animation.SlideInLeftAnimation;
+import free.com.itemlib.item.common.ShrinkViewUtil;
+import free.com.itemlib.item.listener.OnItemClickListener;
+import free.com.itemlib.item.listener.OnItemLongClickListener;
+import free.com.itemlib.item.listener.OnLoadMoreListener;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemSimple;
@@ -32,8 +36,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     protected OnItemClickListener onItemClickListener;
     protected OnItemLongClickListener onItemLongClickListener;
 
-    protected int shrinkLenMax = 6;
-    protected int currShrinkLen = 0;
+    protected ShrinkViewUtil shrinkViewUtil = new ShrinkViewUtil();
 
     protected ItemLoadMore itemLoadMore;
 
@@ -103,7 +106,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     private void setData(List<? extends Item> itemList) {
         clearData();
         dataItemList = (List<Item>) itemList;
-        initShrinkParams();
+        shrinkViewUtil.initShrinkParams(dataItemList);
         notifyDataSetChanged();
     }
 
@@ -112,39 +115,8 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
      */
     private void addData(List<? extends Item> itemList) {
         dataItemList.addAll(itemList);
-        addShrinkParams(itemList);
+        shrinkViewUtil.addShrinkParams(itemList);
         notifyItemRangeInserted(dataItemList.size() - 1 + getHeadCount(), itemList.size());
-    }
-
-    private void addShrinkParams(List<? extends Item> itemList) {
-        for (Item item : itemList) {
-            if (currShrinkLen < item.getShrinkLength()) {
-                //如果新增加的shrink长度大于之前的，则需要重新初始化
-                initShrinkParams();
-                return;
-            }
-        }
-        //如果新增加的shrink长度没有大于之前的，则直接为新增加的赋值
-        setShrinkForItemContent(itemList);
-    }
-
-    private void initShrinkParams() {
-        for (Item item : dataItemList) {
-            currShrinkLen = Math.max(item.getShrinkLength(), currShrinkLen);
-        }
-        setShrinkForItemContent(dataItemList);
-    }
-
-    private void setShrinkForItemContent(List<? extends Item> dataItemList) {
-        if (currShrinkLen <= 0) {
-            return;
-        }
-        currShrinkLen = Math.min(currShrinkLen, shrinkLenMax);
-        for (Item item : dataItemList) {
-            if (currShrinkLen != item.getShrinkLength()) {
-                item.setShrinkLength(currShrinkLen);
-            }
-        }
     }
 
 
@@ -154,9 +126,10 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         footItemList.clear();
         mTypeList.clear();
         mTypeItemList.clear();
-        currShrinkLen = 0;
         lastAnimIndex = -1;
         itemLoadMore = null;
+
+        shrinkViewUtil.clear();
     }
 
     public List<Item> getDataList() {

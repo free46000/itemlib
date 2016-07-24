@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import free.com.itemlib.item.common.ShrinkViewUtil;
+import free.com.itemlib.item.listener.OnItemClickListener;
+import free.com.itemlib.item.listener.OnItemLongClickListener;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 
@@ -23,8 +26,7 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
     protected OnItemClickListener onItemClickListener;
     protected OnItemLongClickListener onItemLongClickListener;
 
-    protected int shrinkLenMax = 6;
-    protected int currShrinkLen = 0;
+    protected ShrinkViewUtil shrinkViewUtil = new ShrinkViewUtil();
 
     protected int scrollState;
 
@@ -54,7 +56,7 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
      */
     protected void setData(List<? extends Item> dataList) {
         this.dataItemList = (List<Item>) dataList;
-        initShrinkParams();
+        shrinkViewUtil.initShrinkParams(dataItemList);
     }
 
     /**
@@ -62,39 +64,7 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
      */
     protected void addData(List<? extends Item> itemList) {
         dataItemList.addAll(itemList);
-        addShrinkParams(itemList);
-    }
-
-    private void addShrinkParams(List<? extends Item> itemList) {
-        for (Item item : itemList) {
-            if (currShrinkLen < item.getShrinkLength()) {
-                //如果新增加的shrink长度大于之前的，则需要重新初始化
-                initShrinkParams();
-                return;
-            }
-        }
-        //如果新增加的shrink长度没有大于之前的，则直接为新增加的赋值
-        setShrinkForItemContent(itemList);
-    }
-
-    private void initShrinkParams() {
-        for (Item item : dataItemList) {
-            currShrinkLen = Math.max(item.getShrinkLength(), currShrinkLen);
-        }
-        setShrinkForItemContent(dataItemList);
-    }
-
-
-    private void setShrinkForItemContent(List<? extends Item> dataItemList) {
-        if (currShrinkLen <= 0) {
-            return;
-        }
-        currShrinkLen = Math.min(currShrinkLen, shrinkLenMax);
-        for (Item item : dataItemList) {
-            if (currShrinkLen != item.getShrinkLength()) {
-                item.setShrinkLength(currShrinkLen);
-            }
-        }
+        shrinkViewUtil.addShrinkParams(itemList);
     }
 
     public Item getTableItem(int position) {
@@ -104,7 +74,7 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
     @SuppressWarnings("unused")
     public void clearData() {
         dataItemList.clear();
-        currShrinkLen = 0;
+        shrinkViewUtil.clear();
     }
 
     public List<? extends Item> getDataList() {

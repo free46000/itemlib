@@ -2,12 +2,11 @@ package free.com.itemlib.item.view;
 
 import android.content.Context;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import free.com.itemlib.item.OnLoadMoreListener;
+import free.com.itemlib.item.listener.OnLoadMoreListener;
 import free.com.itemlib.item.view.content.ItemLoadMore;
 
 

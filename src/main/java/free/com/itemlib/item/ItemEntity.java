@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import free.com.itemlib.item.view.ItemViewHolder;
-import free.com.itemlib.item.view.common.ReflectUtil;
+import free.com.itemlib.item.common.ReflectUtil;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemImpl;
 
