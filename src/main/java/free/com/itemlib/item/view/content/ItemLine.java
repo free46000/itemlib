@@ -1,6 +1,8 @@
 package free.com.itemlib.item.view.content;
 
 import android.content.Context;
+import android.support.annotation.DimenRes;
+import android.support.annotation.DrawableRes;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -16,17 +18,17 @@ import free.com.itemlib.item.view.ItemViewHolder;
  */
 public class ItemLine extends ItemImpl {
     private int lineDrawableResId = R.color.item_line_color;
-    private float lineSizeInDP = 1;
+    private int lineSizeInPX = 1;
 
-    public ItemLine(int lineDrawableResId, float lineSizeInDP) {
+    public ItemLine(int lineDrawableResId, int lineSizeInPX) {
         this.lineDrawableResId = lineDrawableResId;
-        this.lineSizeInDP = lineSizeInDP;
+        this.lineSizeInPX = lineSizeInPX;
     }
 
-    public ItemLine(ItemEntity itemEntity, int lineDrawableResId, float lineSizeInDP) {
+    public ItemLine(ItemEntity itemEntity, int lineDrawableResId, int lineSizeInPX) {
         super(itemEntity);
         this.lineDrawableResId = lineDrawableResId;
-        this.lineSizeInDP = lineSizeInDP;
+        this.lineSizeInPX = lineSizeInPX;
     }
 
     public ItemLine() {
@@ -42,14 +44,18 @@ public class ItemLine extends ItemImpl {
         this.lineDrawableResId = lineDrawableResId;
     }
 
-    public void setLineSizeInDP(float lineSizeInDP) {
-        this.lineSizeInDP = lineSizeInDP;
+    public void setLineSizeInPX(int lineSizeInPX) {
+        this.lineSizeInPX = lineSizeInPX;
+    }
+
+    public void setLineSizeResource(Context context, @DimenRes int lineSizeId) {
+        this.lineSizeInPX = context.getResources().getDimensionPixelSize(lineSizeId);
     }
 
     @Override
     public String getItemViewType() {
         //这样如果line的背景和line的大小不同则会生产不同的line，好处是view的setData不用实现
-        return super.getItemViewType() + lineDrawableResId + "=" + lineSizeInDP;
+        return super.getItemViewType() + lineDrawableResId + "=" + lineSizeInPX;
     }
 
     class ItemLineView extends ItemViewHolder<ItemLine> {
@@ -63,11 +69,8 @@ public class ItemLine extends ItemImpl {
             LinearLayout linearLayout = new LinearLayout(context);
             View view = new View(context);
             view.setBackgroundResource(lineDrawableResId);
-            //// TODO: 2016/6/19 0019 需要增加dp和px转换
-//            linearLayout.addView(view, ViewGroup.LayoutParams.MATCH_PARENT,
-//                    DensityUtils.dip2px(context, lineSizeInDP));
             linearLayout.addView(view, ViewGroup.LayoutParams.MATCH_PARENT,
-                    (int)lineSizeInDP);
+                    lineSizeInPX);
             return linearLayout;
         }
 

@@ -42,7 +42,7 @@ public abstract class ItemDecoration extends RecyclerView.ItemDecoration {
      * 设置分割线Mode {@link #INSIDE_DIVIDER_MODE}{@link #END_DIVIDER_MODE}
      * <p/>
      * PS:如果想实现四周边框模式，则选择INSIDE_DIVIDER_MODE，然后为RecycleView设置背景图，这样圆角问题也可以解决
-     * TODO 实现另一种模式
+     * TODO 实现另一种模式 只需要在isNeedHorizontalDivider和isNeedVerticalDivider返回true，false 即可不需要在子类中实现逻辑
      *
      * @param dividerMode
      */
