@@ -21,4 +21,8 @@ public abstract class ItemBase extends ItemImpl {
 
     public abstract void fillData(View itemView);
 
+    protected <T extends View> T getView(View view, int id) {
+        return (T) view.findViewById(id);
+    }
+
 }
