@@ -52,13 +52,13 @@ public class HorizontalItemDecoration extends ItemDecoration {
                 continue;
             }
 
-            //横向分割线的测量值
-            int rightV = child.getRight();
-            int leftV = child.getLeft();
-            int topV = child.getBottom();
-            int bottomV = topV + (int) mDivider.getHeight();
+            //水平分割线的测量值
+            int right = child.getRight();
+            int left = child.getLeft();
+            int top = child.getBottom();
+            int bottom = top + (int) mDivider.getHeight();
 
-            mDivider.draw(c, leftV, topV, rightV, bottomV);
+            mDivider.draw(c, left, top, right, bottom);
         }
     }
 }
