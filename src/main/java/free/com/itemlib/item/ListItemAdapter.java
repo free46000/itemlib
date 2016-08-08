@@ -55,6 +55,7 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
      * 设置ItemList最终调用方法
      */
     protected void setData(List<? extends Item> dataList) {
+        clearData();
         this.dataItemList = (List<Item>) dataList;
         shrinkViewUtil.initShrinkParams(dataItemList);
     }

@@ -44,14 +44,19 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
     }
 
     @Override
+    public void clearData() {
+        itemInputViewMap.clear();
+        itemHiddenInputViewList.clear();
+        itemInputViewList.clear();
+        originSB = new StringBuilder();
+        super.clearData();
+    }
+
+    @Override
     protected void setData(List<? extends Item> dataList) {
         //防止用户直接在调用端修改dataList后直接调用notifyDataSetChanged()方法去刷新UI
         //目的：作为更新主入口需要初始化以下集合
-        itemInputViewMap = new LinkedHashMap<>();
-        itemHiddenInputViewList = new ArrayList<>();
-        List<Item> newDataList = parseDataList(dataList);
-        originSB = new StringBuilder();
-        super.setData(newDataList);
+        super.setData(parseDataList(dataList));
     }
 
     private List<Item> parseDataList(List<? extends Item> dataList) {
@@ -137,7 +142,7 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
                 ItemInput itemInput = (ItemInput) iiv.getCurrItem();
                 Validate.Rule rule = itemInput.getRule();
                 if (rule != null) {
-                    rule.value = iiv.getValue().toString();
+                    rule.value = rule.value == null ? iiv.getValue().toString() : rule.value;
                     ruleList.add(rule);
                 }
             }

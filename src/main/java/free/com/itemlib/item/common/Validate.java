@@ -1,6 +1,7 @@
 package free.com.itemlib.item.common;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class Validate {
             }
             switch (rule.rule) {
                 case EMPTY:
-                    if (rule.value.length() == 0) {
+                    if (isEmpty(rule.value)) {
                         tip = "请输入" + rule.tip;
                         break;
                     }
@@ -110,6 +111,16 @@ public class Validate {
         if (data == null) return 0;
         if (data.trim().length() == 0) return 0;
         return Integer.parseInt(data);
+    }
+
+    /**
+     * 验证为空
+     *
+     * @param str
+     * @return 如果是为空, 返回 <b>true </b>,否则为 <b>false </b>
+     */
+    public static boolean isEmpty(String str) {
+        return TextUtils.isEmpty(str);
     }
 
     /**
