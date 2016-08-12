@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -123,6 +124,8 @@ public class MainActivity extends Activity {
         }
 
         class ItemTextView extends ItemViewHolder<ItemText> {
+            TextView textView;
+
 
             public ItemTextView(Context context, ItemText item, ViewGroup viewGroup) {
                 super(context, item, viewGroup);
@@ -130,21 +133,18 @@ public class MainActivity extends Activity {
 
             @Override
             protected View initItemView() {
-                TextView textView = new TextView(context);
-                textView.setText("111111111111111111111");
-                textView.setHeight(100);
-                textView.setBackgroundColor(0xFFFFFFFF);
-                return textView;
+                View view = LayoutInflater.from(context).inflate(R.layout.item_text, parentViewGroup, false);
+                textView = (TextView) view.findViewById(R.id.text);
+                return view;
             }
 
             @Override
             public void setData(ItemText itemContent) {
-                ((TextView) itemView).setText(itemContent.value);
+                textView.setText(itemContent.value);
                 if (isFullSpan()) {
 //                    itemView.setBackgroundColor(0xFFDD66CC);
-                    ((TextView) itemView).setHeight(60);
+                    textView.setHeight(60);
                 }
-                itemView.getLayoutParams().width = -1;
             }
         }
 
