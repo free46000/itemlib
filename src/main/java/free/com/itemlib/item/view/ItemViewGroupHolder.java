@@ -28,7 +28,7 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         super.initParams();
         int i = 0;
         for (Item item : currItem.getItemList()) {
-            viewHolderList.get(i++).initParams();
+            getViewHolderList().get(i++).initParams();
         }
     }
 
@@ -58,8 +58,8 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
 
     @Override
     protected View initItemView() {
-        if (viewHolderList.size() == 1) {
-            return viewHolderList.get(0).getItemView();
+        if (getViewHolderList().size() == 1) {
+            return getViewHolderList().get(0).getItemView();
         }
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
@@ -73,7 +73,7 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
     public void setData(T itemContent) {
         List<Item> itemList = getItemList(itemContent);
         for (int i = 0; i < itemList.size(); i++) {
-            viewHolderList.get(i).setData(itemList.get(i));
+            getViewHolderList().get(i).setData(itemList.get(i));
         }
     }
 
@@ -82,7 +82,7 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
     public void setShrink(T itemContent) {
         List<Item> itemList = getItemList(itemContent);
         for (int i = 0; i < itemList.size(); i++) {
-            viewHolderList.get(i).setShrink(itemList.get(i));
+            getViewHolderList().get(i).setShrink(itemList.get(i));
         }
     }
 
@@ -91,7 +91,7 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         super.setBackGround(itemContent, location);
         List<Item> itemList = getItemList(itemContent);
         for (int i = 0; i < itemList.size(); i++) {
-            viewHolderList.get(i).setBackGround(itemList.get(i), location);
+            getViewHolderList().get(i).setBackGround(itemList.get(i), location);
         }
     }
 
@@ -99,7 +99,7 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         List<Item> itemList = null;
         ItemGroup group = (ItemGroup) itemContent;
         itemList = group.getItemList();
-        if (viewHolderList.size() != itemList.size()) {
+        if (getViewHolderList().size() != itemList.size()) {
             //"ItemViewGroupHolder中ItemGroup的itemList和viewHolderList不对应"所以返回一个空的List
             itemList.clear();
         }
@@ -111,7 +111,7 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         super.setParams(itemContent, params);
         List<Item> itemList = getItemList(itemContent);
         for (int i = 0; i < itemList.size(); i++) {
-            viewHolderList.get(i).setParams((Item) itemList.get(i), params);
+            getViewHolderList().get(i).setParams((Item) itemList.get(i), params);
         }
     }
 
@@ -120,7 +120,7 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         super.populateItemViewWhenIdle(itemContent, params);
         List<Item> itemList = getItemList(itemContent);
         for (int i = 0; i < itemList.size(); i++) {
-            viewHolderList.get(i).populateItemViewWhenIdle((Item) itemList.get(i), params);
+            getViewHolderList().get(i).populateItemViewWhenIdle((Item) itemList.get(i), params);
         }
     }
 
@@ -129,8 +129,8 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         if (isInterceptItemChildClick()) {
             super.setOnChildClickListener(listener);
         } else {
-            for (int i = 0; i < viewHolderList.size(); i++) {
-                viewHolderList.get(i).setOnChildClickListener(listener);
+            for (int i = 0; i < getViewHolderList().size(); i++) {
+                getViewHolderList().get(i).setOnChildClickListener(listener);
             }
         }
     }
@@ -140,8 +140,8 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         if (isInterceptItemClick()) {
             super.setOnItemClickListener(listener);
         } else {
-            for (int i = 0; i < viewHolderList.size(); i++) {
-                viewHolderList.get(i).setOnItemClickListener(listener);
+            for (int i = 0; i < getViewHolderList().size(); i++) {
+                getViewHolderList().get(i).setOnItemClickListener(listener);
             }
         }
     }
@@ -151,8 +151,8 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
         if (isInterceptItemClick()) {
             super.setOnItemLongClickListener(listener);
         } else {
-            for (int i = 0; i < viewHolderList.size(); i++) {
-                viewHolderList.get(i).setOnItemLongClickListener(listener);
+            for (int i = 0; i < getViewHolderList().size(); i++) {
+                getViewHolderList().get(i).setOnItemLongClickListener(listener);
             }
         }
     }
@@ -160,8 +160,8 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
     @Override
     public Object getValue() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < viewHolderList.size(); i++) {
-            sb.append(viewHolderList.get(i).getValue());
+        for (int i = 0; i < getViewHolderList().size(); i++) {
+            sb.append(getViewHolderList().get(i).getValue());
         }
         return sb.toString();
     }
@@ -169,9 +169,9 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
     @Override
     public Map<String, Object> getValueMap() {
         Map<String, Object> map = new HashMap<>();
-        for (int i = 0; i < viewHolderList.size(); i++) {
-            if (viewHolderList.get(i).getValueMap() != null)
-                map.putAll(viewHolderList.get(i).getValueMap());
+        for (int i = 0; i < getViewHolderList().size(); i++) {
+            if (getViewHolderList().get(i).getValueMap() != null)
+                map.putAll(getViewHolderList().get(i).getValueMap());
         }
         return map;
     }

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import free.com.itemlib.item.view.ItemViewGroupHolder;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.common.Validate;
 import free.com.itemlib.item.view.content.Item;
+import free.com.itemlib.item.view.content.ItemGroup;
 import free.com.itemlib.item.view.content.ItemHidden;
 import free.com.itemlib.item.view.content.ItemInput;
 
@@ -30,7 +32,6 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
      */
     protected Map<Integer, ItemViewHolder> itemInputViewMap = new LinkedHashMap<>();
     protected List<ItemViewHolder> itemHiddenInputViewList = new ArrayList<>();
-    protected List<ItemViewHolder> itemInputViewList = new ArrayList<>();
     protected StringBuilder originSB = new StringBuilder();
 
     public ListItemInputAdapter(Context context) {
@@ -44,14 +45,18 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
     }
 
     @Override
+    public void clearData() {
+        itemInputViewMap.clear();
+        itemHiddenInputViewList.clear();
+        originSB = new StringBuilder();
+        super.clearData();
+    }
+
+    @Override
     protected void setData(List<? extends Item> dataList) {
         //防止用户直接在调用端修改dataList后直接调用notifyDataSetChanged()方法去刷新UI
         //目的：作为更新主入口需要初始化以下集合
-        itemInputViewMap = new LinkedHashMap<>();
-        itemHiddenInputViewList = new ArrayList<>();
-        List<Item> newDataList = parseDataList(dataList);
-        originSB = new StringBuilder();
-        super.setData(newDataList);
+        super.setData(parseDataList(dataList));
     }
 
     private List<Item> parseDataList(List<? extends Item> dataList) {
@@ -91,7 +96,6 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
     protected View getViewByLocation(int position) {
         View convertView = super.getViewByLocation(position);
         ItemViewHolder tag = (ItemViewHolder) convertView.getTag();
-        fillItemViewHolderList(tag, itemInputViewList);
         itemInputViewMap.put(position, tag);
         originSB.append(tag.getValue());
         return convertView;
@@ -132,17 +136,29 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
 
     public boolean isValueValidate() {
         List<Validate.Rule> ruleList = new ArrayList<>();
-        for (ItemViewHolder iiv : itemInputViewList) {
+        fillValidateList(itemInputViewMap.values(), ruleList);
+        return Validate.validateRules(context, ruleList);
+    }
+
+    private void fillValidateList(Collection<ItemViewHolder> viewHolders, List<Validate.Rule> ruleList) {
+
+        for (ItemViewHolder iiv : viewHolders) {
+            if (iiv instanceof ItemViewGroupHolder) {
+                Collection<ItemViewHolder> childHolders = ((ItemViewGroupHolder) iiv).getViewHolderList();
+                fillValidateList(childHolders, ruleList);
+            }
+
             if (iiv.getCurrItem() instanceof ItemInput) {
                 ItemInput itemInput = (ItemInput) iiv.getCurrItem();
                 Validate.Rule rule = itemInput.getRule();
                 if (rule != null) {
-                    rule.value = iiv.getValue().toString();
+                    rule.value = rule.value == null ? iiv.getValue().toString() : rule.value;
                     ruleList.add(rule);
                 }
             }
         }
-        return Validate.validateRules(context, ruleList);
+
+
     }
 
 

@@ -1,31 +1,26 @@
 package free.com.itemlib.item;
 
-import android.animation.Animator;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
-
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import free.com.itemlib.item.animation.AnimationLoader;
 import free.com.itemlib.item.animation.BaseAnimation;
-import free.com.itemlib.item.animation.SlideInLeftAnimation;
 import free.com.itemlib.item.common.ShrinkViewUtil;
 import free.com.itemlib.item.listener.OnItemClickListener;
 import free.com.itemlib.item.listener.OnItemLongClickListener;
 import free.com.itemlib.item.listener.OnLoadMoreListener;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
-import free.com.itemlib.item.view.content.ItemSimple;
 import free.com.itemlib.item.view.content.ItemLoadMore;
+import free.com.itemlib.item.view.content.ItemSimple;
 
-// TODO: 2016/7/5 0005 notifyItemRangeInserted notifyItemInserted notifyItemRangeRemoved...
 public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.RecyclerViewHolder> {
     protected final List<String> mTypeList = new ArrayList<>();
     protected final List<Item> mTypeItemList = new ArrayList<>();
@@ -36,17 +31,13 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     protected OnItemClickListener onItemClickListener;
     protected OnItemLongClickListener onItemLongClickListener;
 
+    //shrink相关  用来规范name—value模式左侧视图宽度
     protected ShrinkViewUtil shrinkViewUtil = new ShrinkViewUtil();
-
+    //加载更多
     protected ItemLoadMore itemLoadMore;
+    //动画相关
+    protected AnimationLoader animationLoader = new AnimationLoader();
 
-    //动画相关配置
-    protected int lastAnimIndex = -1;
-    protected boolean isAnimEnable;
-    protected boolean isShowAnimWhenFirst;
-    protected BaseAnimation animation;
-    protected long animDuration = 400L;
-    protected Interpolator interpolator = new LinearInterpolator();
 
     public BaseItemAdapter(Context context) {
         this.context = context;
@@ -64,6 +55,11 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         addData(Arrays.asList(item));
     }
 
+    /**
+     * 添加头View，并且设置每个Item为full span
+     *
+     * @param views 头view
+     */
     public void addHeadView(View... views) {
         if (views == null || views.length == 0) {
             return;
@@ -75,10 +71,26 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         }
     }
 
+    /**
+     * @return head view个数
+     */
     public int getHeadCount() {
         return headItemList.size();
     }
 
+    /**
+     * @return foot view个数
+     */
+    public int getFootCount() {
+        return footItemList.size();
+    }
+
+
+    /**
+     * 添加foot View，并且设置每个Item为full span
+     *
+     * @param views head view
+     */
     public void addFootView(View... views) {
         if (views == null || views.length == 0) {
             return;
@@ -126,9 +138,9 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         footItemList.clear();
         mTypeList.clear();
         mTypeItemList.clear();
-        lastAnimIndex = -1;
-        itemLoadMore = null;
 
+        itemLoadMore = null;
+        animationLoader.clear();
         shrinkViewUtil.clear();
     }
 
@@ -148,7 +160,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         if (position < headItemList.size()) {
             return headItemList.get(position);
         }
-        int footPosition = position - headItemList.size() - dataItemList.size();
+        int footPosition = position - getHeadCount() - dataItemList.size();
         if (footPosition >= 0) {
             return footItemList.get(footPosition);
         }
@@ -157,7 +169,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
 
     @Override
     public int getItemCount() {
-        return dataItemList.size() + headItemList.size() + footItemList.size();
+        return dataItemList.size() + getHeadCount() + getFootCount();
     }
 
 
@@ -195,44 +207,27 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
                 .setItemLocation(position).setItemCount(getItemCount()).setClickListener(onItemClickListener)
                 .setLongClickListener(onItemLongClickListener);
         itemHolder.populateItemView(getItem(position), params);
-        addAnimation(itemHolder);
+        animationLoader.addAnimation(itemHolder);
     }
 
-    private void addAnimation(ItemViewHolder holder) {
-        if (isAnimEnable) {
-            if (!isShowAnimWhenFirst || holder.location > lastAnimIndex) {
-                for (Animator anim : animation.getAnimators(holder.getItemView())) {
-                    startAnim(anim, holder.location);
-                }
-                lastAnimIndex = holder.location;
-            }
-        }
-    }
-
-    protected void startAnim(Animator anim, int index) {
-        anim.setDuration(animDuration).start();
-        anim.setInterpolator(interpolator);
-    }
 
     /**
-     * 打开加载动画
+     * 启动加载动画
      *
      * @param animation BaseAnimation
      */
-    public void openLoadAnimation(BaseAnimation animation) {
-        openLoadAnimation(animation, true);
+    public void enableLoadAnimation(BaseAnimation animation) {
+        enableLoadAnimation(animation, true);
     }
 
     /**
-     * 打开加载动画
+     * 启动加载动画
      *
      * @param animation           BaseAnimation
      * @param isShowAnimWhenFirst boolean 是否只有在初次加载的时候才使用动画
      */
-    public void openLoadAnimation(BaseAnimation animation, boolean isShowAnimWhenFirst) {
-        this.isAnimEnable = true;
-        this.isShowAnimWhenFirst = isShowAnimWhenFirst;
-        this.animation = animation == null ? new SlideInLeftAnimation() : animation;
+    public void enableLoadAnimation(BaseAnimation animation, boolean isShowAnimWhenFirst) {
+        animationLoader.enableLoadAnimation(animation, isShowAnimWhenFirst);
     }
 
     @Override
