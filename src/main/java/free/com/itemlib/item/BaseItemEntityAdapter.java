@@ -11,11 +11,15 @@ import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemGroup;
 
 public class BaseItemEntityAdapter extends BaseItemAdapter {
-    //    private List<ItemEntity> dataItemEntityList = new ArrayList<>();
-    public boolean introFlag = false;
+    protected ItemEntityHelper itemEntityHelper;
 
     public BaseItemEntityAdapter(Context context) {
+        this(context, ItemEntity.FLAG_DEFAULT);
+    }
+
+    public BaseItemEntityAdapter(Context context, @ItemEntity.Flag int entityFlag) {
         super(context);
+        itemEntityHelper = new ItemEntityHelper(context, entityFlag);
     }
 
     public void setDataItemEntityList(List<? extends ItemEntity> itemEntityList) {
@@ -26,45 +30,23 @@ public class BaseItemEntityAdapter extends BaseItemAdapter {
         addDataEntity(list);
     }
 
-    public void addDataItemEntity(ItemEntity... item) {
-        addDataEntity(Arrays.asList(item));
+    public void addDataItemEntity(ItemEntity... entities) {
+        addDataEntity(Arrays.asList(entities));
     }
 
     /**
-     * 设置Item最终调用方法
+     * 设置ItemEntity最终调用方法
      */
-    private void setDataEntity(List<? extends ItemEntity> itemEntityList) {
-        setDataItemList(getItemGroupList(itemEntityList));
+    protected void setDataEntity(List<? extends ItemEntity> itemEntityList) {
+        setDataItemList(itemEntityHelper.getItemList(itemEntityList));
     }
 
     /**
-     * 添加Item最终调用方法
+     * 添加ItemEntity最终调用方法
      */
-    private void addDataEntity(List<? extends ItemEntity> itemEntityList) {
-        addDataItemList(getItemGroupList(itemEntityList));
+    protected void addDataEntity(List<? extends ItemEntity> itemEntityList) {
+        addDataItemList(itemEntityHelper.getItemList(itemEntityList));
     }
 
-    private List<ItemGroup> getItemGroupList(List<? extends ItemEntity> itemEntityList) {
-        List<ItemGroup> itemGroupList = new ArrayList<>();
-        for (ItemEntity itemEntity : itemEntityList) {
-            //为ItemGroup赋值ItemEntity方便以后OnClick等其他地方用到
-            itemGroupList.add(new ItemGroup(itemEntity, getItemList(itemEntity)));
-        }
-        return itemGroupList;
-    }
-
-    private List<Item> getItemList(ItemEntity itemEntity) {
-        List<Item> itemList;
-        if (introFlag) {
-            itemList = itemEntity.getItemIntroList(context);
-        } else {
-            itemList = itemEntity.getItemList(context);
-        }
-        return itemList;
-    }
-
-//    public List<ItemEntity> getDataList() {
-//        return dataItemEntityList;
-//    }
 
 }

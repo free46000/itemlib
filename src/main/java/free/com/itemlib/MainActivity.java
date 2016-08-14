@@ -2,6 +2,7 @@ package free.com.itemlib;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -28,6 +29,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        startActivity(new Intent(this, InputActivity.class));
+
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
         TextView headView = new TextView(this);

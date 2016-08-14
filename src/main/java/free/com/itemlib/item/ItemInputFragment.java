@@ -36,12 +36,13 @@ public class ItemInputFragment extends Fragment {
     public void setInputEntity(ItemEntity inputEntity) {
         this.inputEntity = inputEntity;
         if (inputEntity != null) {
-            adapter.setDataItemEntity(inputEntity);
+            adapter.clearData();
+            adapter.addDataItemEntity(inputEntity);
         }
     }
 
     public ItemEntity fillInputEntity() {
-        inputEntity.fillSelf(adapter.getInputValueMap());
+        ItemInputHelper.fillObject(adapter.getInputValueMap(), inputEntity);
         return inputEntity;
     }
 

@@ -8,7 +8,6 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -72,7 +71,6 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
         return dataItemList.get(position);
     }
 
-    @SuppressWarnings("unused")
     public void clearData() {
         dataItemList.clear();
         shrinkViewUtil.clear();
