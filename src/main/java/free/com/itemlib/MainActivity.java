@@ -21,7 +21,7 @@ import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemImpl;
 
 /**
-just for test
+just for test  two 
 */
 public class MainActivity extends Activity {
     private RecyclerView recyclerView;
