@@ -20,6 +20,9 @@ import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemImpl;
 
+/**
+just for test
+*/
 public class MainActivity extends Activity {
     private RecyclerView recyclerView;
     private BaseItemAdapter baseItemAdapter;
