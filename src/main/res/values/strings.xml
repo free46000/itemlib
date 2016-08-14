@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">itemlib</string>
+
+    <!--Item自动切换背景 -->
+    <bool name="isAutoBack">true</bool>
+    <drawable name="item_auto_back1_sel">#fffafafa</drawable>
+
+    <drawable name="item_auto_back2_sel">#ffaaaaaa</drawable>
+    <color name="item_line_color">#ff999999</color>
+</resources>
