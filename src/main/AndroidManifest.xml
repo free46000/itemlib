@@ -28,6 +28,10 @@
             android:name=".InputActivity"
             android:windowSoftInputMode="adjustPan">
         </activity>
+        <activity
+            android:name=".RecyclerActivity"
+            android:windowSoftInputMode="adjustPan">
+        </activity>
     </application>
 
 </manifest>
