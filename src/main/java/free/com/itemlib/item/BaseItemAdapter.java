@@ -132,6 +132,16 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     }
 
 
+    public void addDataTest(int position, Item item) {
+        dataItemList.add(position, item);
+        notifyItemInserted(position);
+    }
+
+    public void removeDataTest(int position) {
+        dataItemList.remove(position);
+        notifyItemInserted(position);
+    }
+
     public void clearData() {
         dataItemList.clear();
         headItemList.clear();

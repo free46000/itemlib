@@ -9,6 +9,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,11 +42,19 @@ public class RecyclerActivity extends Activity {
     }
 
 
-    int lastChildPos;
-    int lastParentPos;
+    int lastChildPos = -1;
+    int lastParentPos = -1;
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        int contentTop = getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
+
+        if (ev.getActionMasked()  == MotionEvent.ACTION_DOWN){
+            lastChildPos = -1;
+            lastParentPos = -1;
+        }
+
+
         View view = recyclerView.findChildViewUnder(ev.getX(), ev.getY());
 // TODO: 2016/8/16 记住上次的parentLoc位置判断是否需要removeItem然后在新的recyclerview中add
         // TODO: 2016/8/16 记住上次的child以便在去moveItem
@@ -54,25 +63,42 @@ public class RecyclerActivity extends Activity {
         if (view != null && view instanceof RecyclerView) {
             ItemViewHolder parentviewHolder = (ItemViewHolder) view.getTag();
             parentLoc = parentviewHolder.location;
-            View itemView = ((RecyclerView) view).findChildViewUnder(ev.getX() - view.getLeft(), ev.getY());
+
+            float childX = ev.getX() - view.getLeft();
+            float childY = ev.getY() - contentTop;
+            View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
+
             if (itemView != null) {
-//            RecyclerView.ViewHolder holder = recyclerView.getChildViewHolder(itemView);
-                ItemViewHolder viewHolder = (ItemViewHolder) itemView.getTag();
-                childLoc = viewHolder.location;
+                RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) itemView.getLayoutParams();
+                childLoc = ((RecyclerView.LayoutParams) itemView.getLayoutParams()).getViewAdapterPosition();
+                System.out.println("paramsgetViewAdapterPosition:" + params.getViewAdapterPosition()
+                        + "==getViewLayoutPosition:" + params.getViewLayoutPosition() + "childY:" + childY
+                        + "childX:" + childX);
             }
-            if (lastChildPos != childLoc && childLoc != -1) {
-                ((RecyclerView) view).getAdapter().notifyItemMoved(lastChildPos, childLoc);
+            if (lastChildPos != childLoc && childLoc != -1 && lastChildPos != -1) {
+                ((RecyclerView) view).getAdapter().notifyItemMoved(childLoc, lastChildPos);
+                System.out.println("find:" + lastChildPos + "==" + childLoc);
             }
+            if (lastParentPos != parentLoc && lastParentPos != -1 && parentLoc != -1 && childLoc != -1) {
+                BaseItemAdapter adapter = (BaseItemAdapter) ((RecyclerView) recyclerView.getChildAt(lastParentPos)).getAdapter();
+//                adapter.removeDataTest(lastParentPos);
+                adapter = (BaseItemAdapter) ((RecyclerView) view).getAdapter();
+                adapter.addDataTest(childLoc,new MainActivity.ItemText("afsdfsafsdgsgsagQQQQQQQQQQQQQQQQ"));
+            }
+            lastParentPos = parentLoc;
+            if (childLoc != -1) {
+                lastChildPos = childLoc;
+            }
+
+
         }
 
 
-        lastChildPos = childLoc;
-
-        System.out.println("find:" + parentLoc + "==" + childLoc);
         return super.dispatchTouchEvent(ev);
 
 
     }
+
 
     class ItemRecycler extends ItemBase {
 
@@ -104,8 +130,8 @@ public class RecyclerActivity extends Activity {
                 @Override
                 public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
 //                 viewHolder.itemView.bringToFront();
-                    recyclerView.bringToFront();
-                    super.onSelectedChanged(viewHolder, actionState);
+//                    recyclerView.bringToFront();
+//                    super.onSelectedChanged(viewHolder, actionState);
                 }
 
 
@@ -132,7 +158,7 @@ public class RecyclerActivity extends Activity {
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                     int position = viewHolder.getAdapterPosition();//获取要滑动删除的Item位置
 //                mData.remove(position);//删除数据
-                    baseItemAdapter.notifyItemRemoved(position);
+//                    baseItemAdapter.notifyItemRemoved(position);
                 }
 
             });
