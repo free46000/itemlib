@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import free.com.itemlib.item.BaseItemAdapter;
+import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemBase;
 
@@ -26,16 +28,50 @@ public class RecyclerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_recycler);
+        setContentView(R.layout.activity_recycler_muti);
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
         baseItemAdapter.addDataItem(new ItemRecycler(), new ItemRecycler(), new ItemRecycler());
-        recyclerView.setLayoutManager(new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setAdapter(baseItemAdapter);
         baseItemAdapter.notifyDataSetChanged();
         recyclerView.setClipChildren(false);
         recyclerView.setClipToPadding(false);
+    }
+
+
+    int lastChildPos;
+    int lastParentPos;
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        View view = recyclerView.findChildViewUnder(ev.getX(), ev.getY());
+// TODO: 2016/8/16 记住上次的parentLoc位置判断是否需要removeItem然后在新的recyclerview中add
+        // TODO: 2016/8/16 记住上次的child以便在去moveItem
+        int parentLoc = -1;
+        int childLoc = -1;
+        if (view != null && view instanceof RecyclerView) {
+            ItemViewHolder parentviewHolder = (ItemViewHolder) view.getTag();
+            parentLoc = parentviewHolder.location;
+            View itemView = ((RecyclerView) view).findChildViewUnder(ev.getX() - view.getLeft(), ev.getY());
+            if (itemView != null) {
+//            RecyclerView.ViewHolder holder = recyclerView.getChildViewHolder(itemView);
+                ItemViewHolder viewHolder = (ItemViewHolder) itemView.getTag();
+                childLoc = viewHolder.location;
+            }
+            if (lastChildPos != childLoc && childLoc != -1) {
+                ((RecyclerView) view).getAdapter().notifyItemMoved(lastChildPos, childLoc);
+            }
+        }
+
+
+        lastChildPos = childLoc;
+
+        System.out.println("find:" + parentLoc + "==" + childLoc);
+        return super.dispatchTouchEvent(ev);
+
+
     }
 
     class ItemRecycler extends ItemBase {
@@ -45,7 +81,7 @@ public class RecyclerActivity extends Activity {
             final RecyclerView recyclerView = new RecyclerView(context);
             recyclerView.setClipChildren(false);
             recyclerView.setClipToPadding(false);
-            recyclerView.setMinimumWidth(600);
+            recyclerView.setMinimumWidth(400);
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             final BaseItemAdapter baseItemAdapter = new BaseItemAdapter(context);
             baseItemAdapter.setDataItemList(getItemList());
@@ -61,7 +97,7 @@ public class RecyclerActivity extends Activity {
 //                int swipeFlags = makeMovementFlags(ItemTouchHelper.ACTION_STATE_SWIPE, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);//表示支持左右的滑动
                     int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN
                             | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;//支持上下左右的拖曳
-                    int swipeFlags =  ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;//表示支持左右的滑动
+                    int swipeFlags = ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;//表示支持左右的滑动
                     return makeMovementFlags(dragFlags, swipeFlags);//直接返回0表示不支持拖曳和滑动
                 }
 
@@ -71,6 +107,7 @@ public class RecyclerActivity extends Activity {
                     recyclerView.bringToFront();
                     super.onSelectedChanged(viewHolder, actionState);
                 }
+
 
                 /**
                  * @param recyclerView attach的RecyclerView
@@ -83,7 +120,7 @@ public class RecyclerActivity extends Activity {
                     int fromPosition = viewHolder.getAdapterPosition();//要拖曳的位置
                     int toPosition = target.getAdapterPosition();//要放置的目标位置
 //                Collections.swap(mData, fromPosition, toPosition);//做数据的交换
-                    baseItemAdapter.notifyItemMoved(fromPosition, toPosition);
+//                    baseItemAdapter.notifyItemMoved(fromPosition, toPosition);
                     return true;
                 }
 
