@@ -2,19 +2,23 @@ package free.com.itemlib;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import free.com.itemlib.item.BaseItemAdapter;
+import free.com.itemlib.item.listener.OnItemLongClickListener;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemBase;
@@ -23,8 +27,17 @@ import free.com.itemlib.item.view.content.ItemBase;
  * Created by free46000 on 2016/8/15 0015.
  */
 public class RecyclerActivity extends Activity {
+    public static final int NONE = -1;
+
+
     private RecyclerView recyclerView;
     private BaseItemAdapter baseItemAdapter;
+    private Item currSelectedItem;
+    private View currTouchedView;
+    private float currX, currY;
+    WindowManager wManager;
+    WindowManager.LayoutParams mParams;
+    private int contentTop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,50 +60,59 @@ public class RecyclerActivity extends Activity {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        int contentTop = getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
+        contentTop = getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
 
-        if (ev.getActionMasked()  == MotionEvent.ACTION_DOWN){
-            lastChildPos = -1;
-            lastParentPos = -1;
+        if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            lastChildPos = NONE;
+            lastParentPos = NONE;
         }
-
-
-        View view = recyclerView.findChildViewUnder(ev.getX(), ev.getY());
-// TODO: 2016/8/16 记住上次的parentLoc位置判断是否需要removeItem然后在新的recyclerview中add
-        // TODO: 2016/8/16 记住上次的child以便在去moveItem
-        int parentLoc = -1;
-        int childLoc = -1;
-        if (view != null && view instanceof RecyclerView) {
-            ItemViewHolder parentviewHolder = (ItemViewHolder) view.getTag();
-            parentLoc = parentviewHolder.location;
-
+        currX = ev.getX();
+        currY = ev.getY() - contentTop;
+        updateView();
+        View view = recyclerView.findChildViewUnder(currX, currY);
+        // TODO: 2016/8/17 0017 和上次移动距离大于一定值才去判断
+        int parentPos = getPositionByItemView(view);
+        int childPos = NONE;
+        if (parentPos != NONE && view instanceof RecyclerView) {
             float childX = ev.getX() - view.getLeft();
             float childY = ev.getY() - contentTop;
             View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
 
-            if (itemView != null) {
-                RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) itemView.getLayoutParams();
-                childLoc = ((RecyclerView.LayoutParams) itemView.getLayoutParams()).getViewAdapterPosition();
-                System.out.println("paramsgetViewAdapterPosition:" + params.getViewAdapterPosition()
-                        + "==getViewLayoutPosition:" + params.getViewLayoutPosition() + "childY:" + childY
-                        + "childX:" + childX);
-            }
-            if (lastChildPos != childLoc && childLoc != -1 && lastChildPos != -1) {
-                ((RecyclerView) view).getAdapter().notifyItemMoved(childLoc, lastChildPos);
-                System.out.println("find:" + lastChildPos + "==" + childLoc);
-            }
-            if (lastParentPos != parentLoc && lastParentPos != -1 && parentLoc != -1 && childLoc != -1) {
+            childPos = getPositionByItemView(itemView);
+            System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY + "===" + "parentX:" + currX);
+            if (isSelectedRecyclerView(lastParentPos, parentPos)) {
+                lastParentPos = parentPos;
+            } else if (isRealChangeRecyclerView(lastParentPos, parentPos, childPos)) {
                 BaseItemAdapter adapter = (BaseItemAdapter) ((RecyclerView) recyclerView.getChildAt(lastParentPos)).getAdapter();
-//                adapter.removeDataTest(lastParentPos);
+                adapter.removeDataTest(lastChildPos);
                 adapter = (BaseItemAdapter) ((RecyclerView) view).getAdapter();
-                adapter.addDataTest(childLoc,new MainActivity.ItemText("afsdfsafsdgsgsagQQQQQQQQQQQQQQQQ"));
-            }
-            lastParentPos = parentLoc;
-            if (childLoc != -1) {
-                lastChildPos = childLoc;
+                adapter.addDataTest(childPos, new MainActivity.ItemText("afsdfsafsdgsgsagQQQQQQQQQQQQQQQQ"));
+                System.out.println("find_parent:" + lastParentPos + "-" + parentPos);
+
+                //因为切换父控件，所以childpos需要重置为相等，不然上个的最后位置有可能超过当前的大小抛出错误
+                lastChildPos = childPos;
+                //在切换recycleview并且触摸到子recycleview的item的时候才真正去改变值
+                lastParentPos = parentPos;
             }
 
 
+            if (childPos != NONE) {
+                if (lastChildPos != childPos && lastChildPos != NONE) {
+                    System.out.println("find:" + lastParentPos + "-" + parentPos + "======" + lastChildPos + "-" + childPos);
+                    ((RecyclerView) view).getAdapter().notifyItemMoved(childPos, lastChildPos);
+                }
+                lastChildPos = childPos;
+            }
+
+        }
+        if (ev.getActionMasked() == MotionEvent.ACTION_UP) {
+            if (currTouchedView != null)
+                wManager.removeView(currTouchedView);
+            currTouchedView = null;
+            currSelectedItem = null;
+        }
+        if (currTouchedView != null) {
+            return true;
         }
 
 
@@ -99,8 +121,68 @@ public class RecyclerActivity extends Activity {
 
     }
 
+    /**
+     * 查找当前view在RecyclerView中的位置 没有返回NONE
+     *
+     * @param itemView View
+     * @return int
+     */
+    private int getPositionByItemView(View itemView) {
+        if (itemView == null) {
+            return NONE;
+        }
+        try {
+            RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) itemView.getLayoutParams();
+            System.out.println("paramsgetViewAdapterPosition:" + params.getViewAdapterPosition()
+                    + "==getViewLayoutPosition:" + params.getViewLayoutPosition());
+            return ((RecyclerView.LayoutParams) itemView.getLayoutParams()).getViewAdapterPosition();
+        } catch (Exception e) {
+        }
+        return NONE;
+    }
+
+    /**
+     * 是否真正切换了RecyclerView
+     * 需要注意这里把没有切换后没有touch到Item当成不是真正切换
+     *
+     * @param lastParentPos
+     * @param currParentPos
+     * @param currChildPos
+     * @return
+     */
+    private boolean isRealChangeRecyclerView(int lastParentPos, int currParentPos, int currChildPos) {
+        return lastParentPos != currParentPos && currChildPos != NONE && lastParentPos != NONE && currParentPos != NONE;
+    }
+
+    /**
+     * 是否为初次选中RecycleView
+     *
+     * @param lastParentPos
+     * @param currParentPos
+     * @return
+     */
+    private boolean isSelectedRecyclerView(int lastParentPos, int currParentPos) {
+        return lastParentPos == NONE && currParentPos != NONE;
+    }
+
+    private void updateView() {
+        if (currTouchedView != null) {
+            mParams.x = (int) currX;
+            mParams.y = (int) currY;
+            wManager.updateViewLayout(currTouchedView, mParams);
+        }
+
+    }
+
+    private ItemTouchHelper getTouchHelper(RecyclerView view) {
+        ItemViewHolder viewHolder = (ItemViewHolder) view.getTag();
+        ItemRecycler itemRecycler = (ItemRecycler) viewHolder.getCurrItem();
+        return itemRecycler.touchHelper;
+    }
+
 
     class ItemRecycler extends ItemBase {
+        public ItemTouchHelper touchHelper;
 
         @Override
         public View initItemView(Context context, final ViewGroup viewGroup) {
@@ -112,57 +194,41 @@ public class RecyclerActivity extends Activity {
             final BaseItemAdapter baseItemAdapter = new BaseItemAdapter(context);
             baseItemAdapter.setDataItemList(getItemList());
             recyclerView.setAdapter(baseItemAdapter);
-            //ItemTouchHelper 用于实现 RecyclerView Item 拖曳效果的类
-            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
 
+            baseItemAdapter.setOnItemLongClickListener(new OnItemLongClickListener() {
                 @Override
-                public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-                    //actionState : action状态类型，有三类 ACTION_STATE_DRAG （拖曳），ACTION_STATE_SWIPE（滑动），ACTION_STATE_IDLE（静止）
-//                int dragFlags = makeFlag(ItemTouchHelper.ACTION_STATE_DRAG, ItemTouchHelper.UP | ItemTouchHelper.DOWN
-//                        | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);//支持上下左右的拖曳
-//                int swipeFlags = makeMovementFlags(ItemTouchHelper.ACTION_STATE_SWIPE, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);//表示支持左右的滑动
-                    int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN
-                            | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;//支持上下左右的拖曳
-                    int swipeFlags = ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;//表示支持左右的滑动
-                    return makeMovementFlags(dragFlags, swipeFlags);//直接返回0表示不支持拖曳和滑动
-                }
-
-                @Override
-                public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-//                 viewHolder.itemView.bringToFront();
-//                    recyclerView.bringToFront();
-//                    super.onSelectedChanged(viewHolder, actionState);
+                public void onItemLongClick(Item item, int location) {
                 }
 
 
-                /**
-                 * @param recyclerView attach的RecyclerView
-                 * @param viewHolder 拖动的Item
-                 * @param target 放置Item的目标位置
-                 * @return
-                 */
                 @Override
-                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                    int fromPosition = viewHolder.getAdapterPosition();//要拖曳的位置
-                    int toPosition = target.getAdapterPosition();//要放置的目标位置
-//                Collections.swap(mData, fromPosition, toPosition);//做数据的交换
-//                    baseItemAdapter.notifyItemMoved(fromPosition, toPosition);
-                    return true;
+                public void onItemLongClick(Item item, ItemViewHolder itemViewHolder, int location, int columnLoc) {
+                    currSelectedItem = item;
+                    currTouchedView = currSelectedItem.newItemView2Show(RecyclerActivity.this, null);
+//                    itemViewHolder.getItemView().setVisibility(View.INVISIBLE);
+                    itemViewHolder.getItemView().setBackgroundColor(0xFF999999);
+                    createView(currTouchedView, itemViewHolder.getItemView());
                 }
 
-                /**
-                 * @param viewHolder 滑动移除的Item
-                 * @param direction
-                 */
-                @Override
-                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                    int position = viewHolder.getAdapterPosition();//获取要滑动删除的Item位置
-//                mData.remove(position);//删除数据
-//                    baseItemAdapter.notifyItemRemoved(position);
+                private void createView(View view, View bottomView) {
+                    wManager = (WindowManager) getSystemService(
+                            Context.WINDOW_SERVICE);
+                    mParams = new WindowManager.LayoutParams();
+//                    mParams.type = WindowManager.LayoutParams.TYPE_APPLICATION;// 系统提示window
+                    mParams.format = PixelFormat.TRANSLUCENT;// 支持透明
+                    //mParams.format = PixelFormat.RGBA_8888;
+                    mParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;// 焦点
+                    mParams.gravity = Gravity.LEFT | Gravity.TOP;
+                    mParams.width = bottomView.getWidth();//窗口的宽和高
+                    mParams.height = bottomView.getHeight();
+                    mParams.x = (int) bottomView.getX();//窗口位置的偏移量
+                    mParams.y = (int) bottomView.getY();
+                    mParams.alpha = 0.6f;
+                    wManager.addView(view, mParams);
                 }
 
             });
-            itemTouchHelper.attachToRecyclerView(recyclerView);
+
 
             return recyclerView;
         }
