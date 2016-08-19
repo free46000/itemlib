@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import free.com.itemlib.item.BaseItemAdapter;
+import free.com.itemlib.item.listener.OnItemLongClickListener;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 import free.com.itemlib.item.view.content.ItemBase;
@@ -25,6 +26,8 @@ import free.com.itemlib.item.view.content.ItemBase;
 public class RecyclerActivity extends Activity {
     private RecyclerView recyclerView;
     private BaseItemAdapter baseItemAdapter;
+
+    private boolean onLongClicked;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,18 +47,19 @@ public class RecyclerActivity extends Activity {
 
     int lastChildPos = -1;
     int lastParentPos = -1;
+    View selectedView = null;
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         int contentTop = getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
 
-        if (ev.getActionMasked()  == MotionEvent.ACTION_DOWN){
+        if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
             lastChildPos = -1;
             lastParentPos = -1;
         }
 
 
-        View view = recyclerView.findChildViewUnder(ev.getX(), ev.getY());
+        View view = recyclerView.findChildViewUnder(ev.getX(), ev.getY() - contentTop);
 // TODO: 2016/8/16 记住上次的parentLoc位置判断是否需要removeItem然后在新的recyclerview中add
         // TODO: 2016/8/16 记住上次的child以便在去moveItem
         int parentLoc = -1;
@@ -67,29 +71,33 @@ public class RecyclerActivity extends Activity {
             float childX = ev.getX() - view.getLeft();
             float childY = ev.getY() - contentTop;
             View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
-
+            boolean isCurrPos = false;
             if (itemView != null) {
                 RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) itemView.getLayoutParams();
                 childLoc = ((RecyclerView.LayoutParams) itemView.getLayoutParams()).getViewAdapterPosition();
-                System.out.println("paramsgetViewAdapterPosition:" + params.getViewAdapterPosition()
-                        + "==getViewLayoutPosition:" + params.getViewLayoutPosition() + "childY:" + childY
-                        + "childX:" + childX);
+                System.out.println("adapterPosition:" + params.getViewAdapterPosition()
+                        + "==layoutPosition:" + params.getViewLayoutPosition() + "childY:" + childY
+                        + "childX:" + childX + "itemView.getTop():" + itemView.getTop()
+                        + "getTranslationY:" + itemView.getTranslationY() + "getY:" + itemView.getY());
+                isCurrPos = isCurrPosition(childY, itemView);
             }
-            if (lastChildPos != childLoc && childLoc != -1 && lastChildPos != -1) {
+            if (lastChildPos != childLoc && childLoc != -1 && lastChildPos != -1 && isCurrPos) {
                 ((RecyclerView) view).getAdapter().notifyItemMoved(childLoc, lastChildPos);
                 System.out.println("find:" + lastChildPos + "==" + childLoc);
+                lastChildPos = childLoc;
+                if (selectedView == null)
+                    selectedView = itemView;
+
             }
             if (lastParentPos != parentLoc && lastParentPos != -1 && parentLoc != -1 && childLoc != -1) {
                 BaseItemAdapter adapter = (BaseItemAdapter) ((RecyclerView) recyclerView.getChildAt(lastParentPos)).getAdapter();
 //                adapter.removeDataTest(lastParentPos);
                 adapter = (BaseItemAdapter) ((RecyclerView) view).getAdapter();
-                adapter.addDataTest(childLoc,new MainActivity.ItemText("afsdfsafsdgsgsagQQQQQQQQQQQQQQQQ"));
+                adapter.addDataTest(childLoc, new MainActivity.ItemText("afsdfsafsdgsgsagQQQQQQQQQQQQQQQQ"));
+                lastChildPos = childLoc;
+                selectedView = null;
             }
             lastParentPos = parentLoc;
-            if (childLoc != -1) {
-                lastChildPos = childLoc;
-            }
-
 
         }
 
@@ -97,6 +105,16 @@ public class RecyclerActivity extends Activity {
         return super.dispatchTouchEvent(ev);
 
 
+    }
+
+    private boolean isCurrPosition(float childY, View itemView) {
+        System.out.println("isCurrPosition:" + (childY > itemView.getTop() && childY < itemView.getBottom()));
+        if (childY > itemView.getTop() && childY < itemView.getBottom()) {
+            return true;
+        }
+
+
+        return false;
     }
 
 
@@ -112,6 +130,15 @@ public class RecyclerActivity extends Activity {
             final BaseItemAdapter baseItemAdapter = new BaseItemAdapter(context);
             baseItemAdapter.setDataItemList(getItemList());
             recyclerView.setAdapter(baseItemAdapter);
+            recyclerView.setOnLongClickListener(new OnItemLongClickListener() {
+                @Override
+                public void onItemLongClick(Item item, int location) {
+                    onLongClicked = true;
+
+
+
+                }
+            });
             //ItemTouchHelper 用于实现 RecyclerView Item 拖曳效果的类
             ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
 
@@ -162,7 +189,7 @@ public class RecyclerActivity extends Activity {
                 }
 
             });
-            itemTouchHelper.attachToRecyclerView(recyclerView);
+//            itemTouchHelper.attachToRecyclerView(recyclerView);
 
             return recyclerView;
         }
