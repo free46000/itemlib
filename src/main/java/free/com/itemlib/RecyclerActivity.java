@@ -38,6 +38,7 @@ public class RecyclerActivity extends Activity {
     WindowManager wManager;
     WindowManager.LayoutParams mParams;
     private int contentTop;
+    private View selectedView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,50 +69,67 @@ public class RecyclerActivity extends Activity {
         }
         currX = ev.getX();
         currY = ev.getY() - contentTop;
-        updateView();
-        View view = recyclerView.findChildViewUnder(currX, currY);
-        // TODO: 2016/8/17 0017 和上次移动距离大于一定值才去判断
-        int parentPos = getPositionByItemView(view);
-        int childPos = NONE;
-        if (parentPos != NONE && view instanceof RecyclerView) {
-            float childX = ev.getX() - view.getLeft();
-            float childY = ev.getY() - contentTop;
-            View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
-
-            childPos = getPositionByItemView(itemView);
-            System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY + "===" + "parentX:" + currX);
-            if (isSelectedRecyclerView(lastParentPos, parentPos)) {
-                lastParentPos = parentPos;
-            } else if (isRealChangeRecyclerView(lastParentPos, parentPos, childPos)) {
-                BaseItemAdapter adapter = (BaseItemAdapter) ((RecyclerView) recyclerView.getChildAt(lastParentPos)).getAdapter();
-                adapter.removeDataTest(lastChildPos);
-                adapter = (BaseItemAdapter) ((RecyclerView) view).getAdapter();
-                adapter.addDataTest(childPos, new MainActivity.ItemText("afsdfsafsdgsgsagQQQQQQQQQQQQQQQQ"));
-                System.out.println("find_parent:" + lastParentPos + "-" + parentPos);
-
-                //因为切换父控件，所以childpos需要重置为相等，不然上个的最后位置有可能超过当前的大小抛出错误
-                lastChildPos = childPos;
-                //在切换recycleview并且触摸到子recycleview的item的时候才真正去改变值
-                lastParentPos = parentPos;
-            }
-
-
-            if (childPos != NONE) {
-                if (lastChildPos != childPos && lastChildPos != NONE) {
-                    System.out.println("find:" + lastParentPos + "-" + parentPos + "======" + lastChildPos + "-" + childPos);
-                    ((RecyclerView) view).getAdapter().notifyItemMoved(childPos, lastChildPos);
-                }
-                lastChildPos = childPos;
-            }
-
-        }
-        if (ev.getActionMasked() == MotionEvent.ACTION_UP) {
-            if (currTouchedView != null)
-                wManager.removeView(currTouchedView);
-            currTouchedView = null;
-            currSelectedItem = null;
-        }
         if (currTouchedView != null) {
+            updateView();
+            View view = recyclerView.findChildViewUnder(currX, currY);
+            int parentPos = getPositionByItemView(view);
+            int childPos = NONE;
+            if (parentPos != NONE && view instanceof RecyclerView) {
+                float childX = ev.getX() - view.getLeft();
+                float childY = ev.getY() - contentTop;
+                View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
+
+                childPos = getPositionByItemView(itemView);
+                System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY + "===" + "parentX:" + currX);
+                if (isSelectedRecyclerView(lastParentPos, parentPos)) {
+                    lastParentPos = parentPos;
+                } else if (isRealChangeRecyclerView(lastParentPos, parentPos, childPos)) {
+                    BaseItemAdapter adapter = (BaseItemAdapter) ((RecyclerView) recyclerView.getChildAt(lastParentPos)).getAdapter();
+                    adapter.removeDataTest(lastChildPos);
+                    adapter = (BaseItemAdapter) ((RecyclerView) view).getAdapter();
+                    adapter.addDataTest(childPos, currSelectedItem);
+                    System.out.println("find_parent:" + lastParentPos + "-" + parentPos);
+
+                    //因为切换父控件，所以需要重置为NONE，不然上个的最后位置有可能超过当前的大小抛出错误
+                    lastChildPos = NONE;
+                    //在切换recycleview并且触摸到子recycleview的item的时候才真正去改变值
+                    lastParentPos = parentPos;
+                }
+
+
+                if (childPos != NONE) {
+                    if (isSelectedChildView(lastChildPos, childPos)) {
+                        selectedView = itemView;
+                        lastChildPos = childPos;
+                    }
+
+                    int targetPos = getTargetChildPos(selectedView, ((RecyclerView) view), childX, childY);
+                    if (isNeedMove(selectedView, lastChildPos, targetPos, childY)) {
+                        System.out.println("find:" + lastParentPos + "-" + parentPos + "======" + lastChildPos + "-" + targetPos);
+                        BaseItemAdapter adapter = (BaseItemAdapter) ((RecyclerView) view).getAdapter();
+                        adapter.moveDataTest(lastChildPos, targetPos);
+                        lastChildPos = targetPos;
+                    }
+                }
+
+            }
+            if (ev.getActionMasked() == MotionEvent.ACTION_UP) {
+                if (currTouchedView != null) {
+                    wManager.removeView(currTouchedView);
+                    ((MainActivity.ItemText) currSelectedItem).setGravity(View.VISIBLE);
+                    for (int i = 0; i < recyclerView.getChildCount(); i++) {
+                        View childView = recyclerView.getChildAt(i);
+                        if (childView instanceof RecyclerView) {
+                            ((RecyclerView) childView).getAdapter().notifyDataSetChanged();
+                        }
+                    }
+                }
+
+
+                currTouchedView = null;
+                currSelectedItem = null;
+            }
+
             return true;
         }
 
@@ -120,6 +138,67 @@ public class RecyclerActivity extends Activity {
 
 
     }
+
+
+    /**
+     * 获取需要move的目标view，即toPosition
+     *
+     * @param selectedView
+     * @param recyclerView
+     * @param touchX
+     * @param touchY
+     * @return NONE为找不到
+     */
+    private int getTargetChildPos(View selectedView, RecyclerView recyclerView, float touchX, float touchY) {
+
+        View itemView = recyclerView.findChildViewUnder(touchX, touchY);
+        int childPos = getPositionByItemView(itemView);
+        if (childPos != NONE && childPos != lastChildPos && isCurrPosition(touchY, itemView)) {
+            return childPos;
+        }
+        float bottomY = touchY + selectedView.getHeight();
+        itemView = recyclerView.findChildViewUnder(touchX, bottomY);
+        childPos = getPositionByItemView(itemView);
+        if (childPos != NONE && childPos != lastChildPos && isCurrPosition(touchY, itemView)) {
+            return childPos;
+        }
+        return NONE;
+    }
+
+
+    /**
+     * 两个Item是否需要move
+     *
+     * @param selectedView
+     * @param lastChildPos
+     * @param targetPos
+     * @param touchY
+     * @return
+     */
+    private boolean isNeedMove(View selectedView, int lastChildPos, int targetPos, float touchY) {
+        if (selectedView == null || lastChildPos == NONE || targetPos == NONE) {
+            return false;
+        }
+        System.out.println("isNeedRemove-top:" + selectedView.getTop() + "======height:" + selectedView.getHeight() + "======touchY:" + touchY);
+        return Math.abs(touchY - selectedView.getTop()) > (selectedView.getHeight() / 2);
+    }
+
+    /**
+     * touch的位置是否为当前view，防止两个item切换时的抖动问题
+     *
+     * @param childY
+     * @param itemView
+     * @return
+     */
+    private boolean isCurrPosition(float childY, View itemView) {
+        if (childY > itemView.getTop() && childY < itemView.getBottom()) {
+            return true;
+        }
+        System.out.println("isCurrPosition:" + (childY > itemView.getTop() && childY < itemView.getBottom()));
+
+        return false;
+    }
+
 
     /**
      * 查找当前view在RecyclerView中的位置 没有返回NONE
@@ -165,6 +244,17 @@ public class RecyclerActivity extends Activity {
         return lastParentPos == NONE && currParentPos != NONE;
     }
 
+    /**
+     * 是否为第一次选中子ItemView
+     *
+     * @param lastChildPos
+     * @param currChildPos
+     * @return
+     */
+    private boolean isSelectedChildView(int lastChildPos, int currChildPos) {
+        return lastChildPos == NONE && currChildPos != NONE;
+    }
+
     private void updateView() {
         if (currTouchedView != null) {
             mParams.x = (int) currX;
@@ -189,7 +279,8 @@ public class RecyclerActivity extends Activity {
             final RecyclerView recyclerView = new RecyclerView(context);
             recyclerView.setClipChildren(false);
             recyclerView.setClipToPadding(false);
-            recyclerView.setMinimumWidth(400);
+            recyclerView.setMinimumWidth(200);
+
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             final BaseItemAdapter baseItemAdapter = new BaseItemAdapter(context);
             baseItemAdapter.setDataItemList(getItemList());
@@ -206,7 +297,10 @@ public class RecyclerActivity extends Activity {
                     currSelectedItem = item;
                     currTouchedView = currSelectedItem.newItemView2Show(RecyclerActivity.this, null);
 //                    itemViewHolder.getItemView().setVisibility(View.INVISIBLE);
-                    itemViewHolder.getItemView().setBackgroundColor(0xFF999999);
+                    if (item instanceof MainActivity.ItemText) {
+                        ((MainActivity.ItemText) item).setGravity(View.INVISIBLE);
+                        itemViewHolder.refreshView();
+                    }
                     createView(currTouchedView, itemViewHolder.getItemView());
                 }
 
@@ -241,15 +335,7 @@ public class RecyclerActivity extends Activity {
         private List<Item> getItemList() {
             List<Item> list = new ArrayList<>();
             for (int i = 0; i < 5; i++) {
-                if (i % 5 == 0) {
-                    list.add(new MainActivity.ItemText(i + "fdsagsaadfdasfasfdasfdasfdasfdgagsaggasg" + i) {
-                        @Override
-                        public boolean isFullSpan() {
-                            return true;
-                        }
-                    });
-                }
-                list.add(new MainActivity.ItemText(i + "fsadfsafdsafdsafdsafdsafdsafdasfdsafdsafdsfdasf" + i));
+                list.add(new MainActivity.ItemText(i + "fsadfsafdsafdsafdsafdsa\nfdsafdasfdsafdsafdsfdasf" + i));
             }
             return list;
         }

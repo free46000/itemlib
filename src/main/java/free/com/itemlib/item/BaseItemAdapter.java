@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import free.com.itemlib.item.animation.AnimationLoader;
@@ -131,6 +132,22 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         notifyItemRangeInserted(dataItemList.size() - 1 + getHeadCount(), itemList.size());
     }
 
+    public void moveDataTest(int fromPos, int toPos) {
+        if (fromPos > toPos) {
+            for (int i = fromPos; i > toPos; i--) {
+                Collections.swap(dataItemList, i, i - 1);
+            }
+        } else {
+            for (int i = fromPos; i < toPos; i++) {
+                Collections.swap(dataItemList, i, i + 1);
+            }
+        }
+
+
+//        Collections.swap(dataItemList, fromPos, toPos);
+        notifyItemMoved(fromPos, toPos);
+
+    }
 
     public void addDataTest(int position, Item item) {
         dataItemList.add(position, item);

@@ -105,14 +105,14 @@ public class MainActivity extends Activity {
 //                int swipeFlags = makeMovementFlags(ItemTouchHelper.ACTION_STATE_SWIPE, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);//表示支持左右的滑动
                 int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN
                         | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;//支持上下左右的拖曳
-                int swipeFlags =  ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;//表示支持左右的滑动
+                int swipeFlags = ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT;//表示支持左右的滑动
                 return makeMovementFlags(dragFlags, swipeFlags);//直接返回0表示不支持拖曳和滑动
             }
 
             /**
              * @param recyclerView attach的RecyclerView
-             * @param viewHolder 拖动的Item
-             * @param target 放置Item的目标位置
+             * @param viewHolder   拖动的Item
+             * @param target       放置Item的目标位置
              * @return
              */
             @Override
@@ -141,7 +141,7 @@ public class MainActivity extends Activity {
         baseItemAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(Item item, int location) {
-                Toast.makeText(MainActivity.this,item.toString(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, item.toString(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -167,13 +167,38 @@ public class MainActivity extends Activity {
 
     public static class ItemText extends ItemImpl {
         private String value;
+        private int gravity = View.VISIBLE;
+
+        public void setGravity(int gravity) {
+            this.gravity = gravity;
+        }
 
         public ItemText(String value) {
             this.value = value;
             i++;
         }
 
-//        @Override
+        public ItemText(String value, int gravity) {
+            this.value = value;
+            this.gravity = gravity;
+            i++;
+        }
+
+
+        public int getGravity() {
+            return gravity;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        @Override
+        public String getItemViewType() {
+            return super.getItemViewType();
+        }
+
+        //        @Override
 //        public boolean isFullSpan() {
 //            return i % 5 == 0;
 //        }
@@ -183,7 +208,7 @@ public class MainActivity extends Activity {
             return new ItemTextView(context, this, parent);
         }
 
-        class ItemTextView extends ItemViewHolder<ItemText> {
+        static class ItemTextView extends ItemViewHolder<ItemText> {
             TextView textView;
 
 
@@ -200,7 +225,9 @@ public class MainActivity extends Activity {
 
             @Override
             public void setData(ItemText itemContent) {
-                textView.setText(itemContent.value);
+                textView.setText(itemContent.getValue());
+                textView.setHeight(200);
+                textView.setVisibility(currItem.getGravity());
                 if (isFullSpan()) {
 //                    itemView.setBackgroundColor(0xFFDD66CC);
                     textView.setHeight(60);
