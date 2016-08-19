@@ -139,7 +139,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
 
     public void removeDataTest(int position) {
         dataItemList.remove(position);
-        notifyItemInserted(position);
+        notifyItemRemoved(position);
     }
 
     public void clearData() {
