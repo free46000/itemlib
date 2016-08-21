@@ -8,28 +8,57 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
-import free.com.itemlib.item.BaseItemAdapter;
-import free.com.itemlib.item.view.content.Item;
-
 /**
- * Created by wzx on 2016/8/19.
+ * Created by free46000 on 2016/8/19.
  */
 public class PanelTouchHelper {
     public static final int NONE = -1;
 
     private View currItemView;
-    private Item currItem;
+    private RecyclerView.ViewHolder currViewHolder;
     private RecyclerView parentRecycler;
-    private int lastParentPos = NONE;
-    private int lastChildPos = NONE;
     private OnDragListener onDragListener;
     private DragFloatViewHelper floatViewHelper;
 
-    public void startDrag(View itemView) {
-        onDragListener.onDragStart();
-        floatViewHelper.createView(currItem.newItemView2Show(itemView.getContext(), null), itemView);
+    private int lastParentPos = NONE;
+    private int lastChildPos = NONE;
+
+    public PanelTouchHelper(RecyclerView parentRecycler) {
+        this.parentRecycler = parentRecycler;
+        floatViewHelper = new DragFloatViewHelper();
+
     }
 
+    /**
+     * 开始拖拽
+     *
+     * @param viewHolder 选中的Item的ViewHolder
+     * @param floatView  需要跟随手势浮动的 View
+     */
+    public void startDrag(RecyclerView.ViewHolder viewHolder, View floatView) {
+        currItemView = viewHolder.itemView;
+        this.currViewHolder = viewHolder;
+        onDragListener.onDragStart();
+        floatViewHelper.createView(floatView, currItemView);
+    }
+
+    /**
+     * 设置拖拽回调Listener
+     *
+     * @param onDragListener 回调Listener
+     */
+    public void setOnDragListener(OnDragListener onDragListener) {
+        this.onDragListener = onDragListener;
+    }
+
+    /**
+     * touch事件处理
+     *
+     * @param event  touch的event
+     * @param touchX touchX
+     * @param touchY touchY
+     * @return true表示消耗掉事件
+     */
     public boolean onTouch(MotionEvent event, float touchX, float touchY) {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             lastChildPos = NONE;
@@ -40,19 +69,19 @@ public class PanelTouchHelper {
             floatViewHelper.updateView((int) touchX, (int) touchY);
             View view = parentRecycler.findChildViewUnder(touchX, touchY);
             int parentPos = getPositionByItemView(view);
-            int childPos = NONE;
             if (parentPos != NONE && view instanceof RecyclerView) {
                 float childX = touchX - view.getLeft();
                 float childY = touchY;
                 View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
 
-                childPos = getPositionByItemView(itemView);
-                System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY + "===" + "parentX:" + currX);
+                int childPos = getPositionByItemView(itemView);
+                System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY);
                 if (isSelectedRecyclerView(lastParentPos, parentPos)) {
                     lastParentPos = parentPos;
                     onDragListener.onRecyclerSelected((RecyclerView) view, parentPos);
                 } else if (isRealChangeRecyclerView(lastParentPos, parentPos, childPos)) {
-                    onDragListener.onRecyclerChanged((RecyclerView) view, lastParentPos, parentPos);
+                    onDragListener.onRecyclerChanged((RecyclerView) parentRecycler.getChildAt(lastParentPos),
+                            (RecyclerView) view, lastChildPos, childPos);
                     System.out.println("find_parent:" + lastParentPos + "-" + parentPos);
                     //因为切换父控件，所以需要重置为NONE，不然上个的最后位置有可能超过当前的大小抛出错误
                     lastChildPos = NONE;
@@ -70,7 +99,7 @@ public class PanelTouchHelper {
 
                     int targetPos = getTargetChildPos(currItemView, ((RecyclerView) view), childX, childY);
                     if (isNeedMove(currItemView, lastChildPos, targetPos, childY)) {
-                        onDragListener.onItemChanged((RecyclerView) view, lastChildPos, childPos);
+                        onDragListener.onItemChanged((RecyclerView) view, lastChildPos, targetPos);
 
                         System.out.println("find:" + lastParentPos + "-" + parentPos + "======" + lastChildPos + "-" + targetPos);
                         lastChildPos = targetPos;
@@ -80,13 +109,13 @@ public class PanelTouchHelper {
             }
             if (event.getActionMasked() == MotionEvent.ACTION_UP) {
                 if (currItemView != null) {
-                    onDragListener.onDragFinish();
+                    onDragListener.onDragFinish(lastChildPos);
                     floatViewHelper.removeView();
                 }
 
 
                 currItemView = null;
-                currItem = null;
+                currViewHolder = null;
             }
 
             return true;
@@ -94,12 +123,12 @@ public class PanelTouchHelper {
         return false;
     }
 
+
     /**
      * 获取需要move的目标view，即toPosition
      *
      * @return NONE为找不到
      */
-
     private int getTargetChildPos(View selectedView, RecyclerView recyclerView, float touchX,
                                   float touchY) {
 
@@ -155,6 +184,7 @@ public class PanelTouchHelper {
                     + "==getViewLayoutPosition:" + params.getViewLayoutPosition());
             return ((RecyclerView.LayoutParams) itemView.getLayoutParams()).getViewAdapterPosition();
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return NONE;
     }
@@ -187,24 +217,36 @@ public class PanelTouchHelper {
         private WindowManager wManager;
         private WindowManager.LayoutParams mParams;
 
-        public void createView(View touchedView, View coverView) {
-            currTouchedView = touchedView;
-            wManager = (WindowManager) touchedView.getContext().getSystemService(
+        /**
+         * 创建浮层view
+         *
+         * @param floatView 浮层view
+         * @param coverView 被覆盖的view，用于计算浮层位置
+         */
+        public void createView(View floatView, View coverView) {
+            currTouchedView = floatView;
+            wManager = (WindowManager) floatView.getContext().getSystemService(
                     Context.WINDOW_SERVICE);
             mParams = new WindowManager.LayoutParams();
 //                    mParams.type = WindowManager.LayoutParams.TYPE_APPLICATION;// 系统提示window
             mParams.format = PixelFormat.TRANSLUCENT;// 支持透明
             //mParams.format = PixelFormat.RGBA_8888;
             mParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;// 焦点
-            mParams.gravity = Gravity.LEFT | Gravity.TOP;
+            mParams.gravity = Gravity.START | Gravity.TOP;
             mParams.width = coverView.getWidth();//窗口的宽和高
             mParams.height = coverView.getHeight();
             mParams.x = (int) coverView.getX();//窗口位置的偏移量
             mParams.y = (int) coverView.getY();
             mParams.alpha = 0.6f;
-            wManager.addView(touchedView, mParams);
+            wManager.addView(floatView, mParams);
         }
 
+        /**
+         * 更新浮层View
+         *
+         * @param x X
+         * @param y Y
+         */
         public void updateView(int x, int y) {
             if (currTouchedView != null) {
                 mParams.x = x;
@@ -213,6 +255,9 @@ public class PanelTouchHelper {
             }
         }
 
+        /**
+         * 移除浮层view
+         */
         public void removeView() {
             if (currTouchedView != null && wManager != null) {
                 wManager.removeView(currTouchedView);
@@ -222,46 +267,52 @@ public class PanelTouchHelper {
     }
 
 
-    class OnDragListener {
+    public interface OnDragListener {
+        /**
+         * 第一次被选中的时候回调
+         *
+         * @param selectedView 选中的RecyclerView
+         * @param selectedPos  选中的位置
+         */
+        void onRecyclerSelected(RecyclerView selectedView, int selectedPos);
 
-        public void onRecyclerSelected(RecyclerView recyclerView, int selectedPos) {
+        /**
+         * 触摸时切换RecyclerView的时候回调
+         *
+         * @param fromView    上个RecyclerView
+         * @param toView      当前RecyclerView
+         * @param itemFromPos 上个item选中的位置
+         * @param itemToPos   当前item选中的位置
+         */
+        void onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos);
 
-        }
+        /**
+         * 第一次被选中的时候回调
+         *
+         * @param selectedView 选中的RecyclerView
+         * @param selectedPos  选中的位置
+         */
+        void onItemSelected(View selectedView, int selectedPos);
 
-        public void onRecyclerChanged(RecyclerView recyclerView, int fromPos, int toPos) {
-            BaseItemAdapter adapter = (BaseItemAdapter) ((RecyclerView) parentRecycler.getChildAt(fromPos)).getAdapter();
-            adapter.removeDataTest(lastChildPos);
-            adapter = (BaseItemAdapter) recyclerView.getAdapter();
-            adapter.addDataTest(toPos, currItem);
-        }
+        /**
+         * 触摸时切换Item的时候回调
+         *
+         * @param recyclerView 包含Item的RecyclerView
+         * @param fromPos      上个选中的位置
+         * @param toPos        当前选中的位置
+         */
+        void onItemChanged(RecyclerView recyclerView, int fromPos, int toPos);
 
-        public void onItemSelected(View selectedView, int selectedPos) {
-
-        }
-
-        public void onItemChanged(RecyclerView recyclerView, int fromPos, int toPos) {
-            BaseItemAdapter adapter = (BaseItemAdapter) recyclerView.getAdapter();
-            adapter.moveDataTest(fromPos, toPos);
-        }
-
-        public void onDragFinish() {
-            ((MainActivity.ItemText) currItem).setGravity(View.VISIBLE);
-            for (int i = 0; i < parentRecycler.getChildCount(); i++) {
-                View childView = parentRecycler.getChildAt(i);
-                if (childView instanceof RecyclerView) {
-                    ((RecyclerView) childView).getAdapter().notifyDataSetChanged();
-                }
-            }
-        }
-
-        public void onDragStart() {
-//            if (currItem instanceof MainActivity.ItemText) {
-//                ((MainActivity.ItemText) currItem).setGravity(View.INVISIBLE);
-//                itemViewHolder.refreshView();
-//            }
-        }
+        /**
+         * 拖拽结束时回调
+         */
+        void onDragFinish(int itemPos);
 
 
+        /**
+         * 拖拽开始时回调
+         */
+        void onDragStart();
     }
 
 
