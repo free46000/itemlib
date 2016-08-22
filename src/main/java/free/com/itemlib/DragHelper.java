@@ -14,11 +14,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import com.example.siqi.worktilecoretestdemo.R;
-import com.example.siqi.worktilecoretestdemo.Utils.AttrAboutPhone;
-import com.example.siqi.worktilecoretestdemo.adapter.RecyclerViewListsAdapter;
-import com.example.siqi.worktilecoretestdemo.ui.view.PagerRecyclerView.PagerRecyclerView;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -237,12 +232,12 @@ public class DragHelper {
 
     private int mPagerPosition;
     private void updateSelectedVerticalRecyclerView() {
-        int newPosition = mHorizontalRecyclerView.getCurrentPosition();
-        if (mPagerPosition != newPosition) {
-            RecyclerViewListsAdapter.ViewHolder holder = (RecyclerViewListsAdapter.ViewHolder) mHorizontalRecyclerView.findViewHolderForAdapterPosition(newPosition);
-            mCurrentVerticalView = (RecyclerView) holder.itemView.findViewById(R.id.task_list_rv);
-            mPagerPosition = newPosition;
-        }
+//        int newPosition = mHorizontalRecyclerView.getCurrentPosition();
+//        if (mPagerPosition != newPosition) {
+//            RecyclerViewListsAdapter.ViewHolder holder = (RecyclerViewListsAdapter.ViewHolder) mHorizontalRecyclerView.findViewHolderForAdapterPosition(newPosition);
+//            mCurrentVerticalView = (RecyclerView) holder.itemView.findViewById(R.id.task_list_rv);
+//            mPagerPosition = newPosition;
+//        }
     }
 
 }

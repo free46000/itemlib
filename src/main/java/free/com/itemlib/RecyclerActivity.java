@@ -3,6 +3,7 @@ package free.com.itemlib;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -165,7 +166,7 @@ public class RecyclerActivity extends Activity {
 
         private List<Item> getItemList() {
             List<Item> list = new ArrayList<>();
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 25; i++) {
                 list.add(new MainActivity.ItemText(i + "fsadfsafdsafdsafdsafdsa\nfdsafdasfdsafdsafdsfdasf" + i));
             }
             return list;

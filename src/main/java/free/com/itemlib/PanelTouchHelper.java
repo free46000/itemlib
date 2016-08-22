@@ -2,11 +2,14 @@ package free.com.itemlib;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Interpolator;
 
 /**
  * Created by free46000 on 2016/8/19.
@@ -22,6 +25,8 @@ public class PanelTouchHelper {
 
     private int lastParentPos = NONE;
     private int lastChildPos = NONE;
+
+    private float initTouchX, initTouchY;
 
     public PanelTouchHelper(RecyclerView parentRecycler) {
         this.parentRecycler = parentRecycler;
@@ -63,6 +68,8 @@ public class PanelTouchHelper {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             lastChildPos = NONE;
             lastParentPos = NONE;
+            initTouchX = touchX;
+            initTouchY = touchY;
         }
 
         if (currItemView != null) {
@@ -106,6 +113,9 @@ public class PanelTouchHelper {
                     }
                 }
 
+
+                scrollIfNecessary((RecyclerView) view, (int) touchX, (int) touchY);
+
             }
             if (event.getActionMasked() == MotionEvent.ACTION_UP) {
                 if (currItemView != null) {
@@ -123,6 +133,159 @@ public class PanelTouchHelper {
         return false;
     }
 
+
+    private long mDragScrollStartTimeInMs;
+    private Rect mTmpRect;
+
+//    /**
+//     * When user drags a view to the edge, we start scrolling the LayoutManager as long as View
+//     * is partially out of bounds.
+//     */
+//    private final Runnable mScrollRunnable = new Runnable() {
+//
+//
+//        @Override
+//        public void run() {
+//            if (currItemView != null && scrollIfNecessary()) {
+//                if (mSelected != null) { //it might be lost during scrolling
+//                    moveIfNecessary(mSelected);
+//                }
+//                .removeCallbacks(mScrollRunnable);
+//                ViewCompat.postOnAnimation(mRecyclerView, this);
+//            }
+//        }
+//    };
+
+    /**
+     * If user drags the view to the edge, trigger a scroll if necessary.
+     */
+    private boolean scrollIfNecessary(RecyclerView recyclerView, int curX, int curY) {
+        if (currViewHolder == null) {
+            mDragScrollStartTimeInMs = Long.MIN_VALUE;
+            return false;
+        }
+        final long now = System.currentTimeMillis();
+        final long scrollDuration = mDragScrollStartTimeInMs
+                == Long.MIN_VALUE ? 0 : now - mDragScrollStartTimeInMs;
+        RecyclerView.LayoutManager lm = recyclerView.getLayoutManager();
+        if (mTmpRect == null) {
+            mTmpRect = new Rect();
+        }
+        int scrollX = 0;
+        int scrollY = 0;
+        lm.calculateItemDecorationsForChild(currViewHolder.itemView, mTmpRect);
+//        if (lm.canScrollHorizontally()) {
+//            final int leftDiff = curX - mTmpRect.left - recyclerView.getPaddingLeft();
+//            if (mDx < 0 && leftDiff < 0) {
+//                scrollX = leftDiff;
+//            } else if (mDx > 0) {
+//                final int rightDiff =
+//                        curX + mSelected.itemView.getWidth() + mTmpRect.right
+//                                - (mRecyclerView.getWidth() - mRecyclerView.getPaddingRight());
+//                if (rightDiff > 0) {
+//                    scrollX = rightDiff;
+//                }
+//            }
+//        }
+        int mDy = curY - (int) initTouchY;
+        if (lm.canScrollVertically()) {
+//            final int topDiff = curY - mTmpRect.top - recyclerView.getPaddingTop();
+            //原来是减去 mTmpRect.top
+            final int topDiff = curY - mTmpRect.bottom - recyclerView.getPaddingTop();
+            System.out.println("scroll:::::"+curY + "=" +mDy+"="+ mTmpRect.top + mTmpRect.bottom + recyclerView.getTop());
+
+            if (mDy < 0) {
+                scrollY = mDy;
+            } else if (mDy > 0) {
+                final int bottomDiff = curY + currViewHolder.itemView.getHeight() + mTmpRect.bottom -
+                        (recyclerView.getHeight() - recyclerView.getPaddingBottom());
+                if (bottomDiff > 0) {
+                    scrollY = bottomDiff;
+                }
+            }
+        }
+//        if (scrollX != 0) {
+//            scrollX = mCallback.interpolateOutOfBoundsScroll(mRecyclerView,
+//                    mSelected.itemView.getWidth(), scrollX,
+//                    mRecyclerView.getWidth(), scrollDuration);
+//        }
+        if (scrollY != 0) {
+            scrollY = scrollY < 0 ? -30 : 30;
+//            scrollY = interpolateOutOfBoundsScroll(recyclerView,
+//                    currItemView.getHeight(), scrollY,
+//                    recyclerView.getHeight(), scrollDuration);
+        }
+        if (scrollX != 0 || scrollY != 0) {
+            if (mDragScrollStartTimeInMs == Long.MIN_VALUE) {
+                mDragScrollStartTimeInMs = now;
+            }
+            recyclerView.scrollBy(scrollX, scrollY);
+            return true;
+        }
+        mDragScrollStartTimeInMs = Long.MIN_VALUE;
+        return false;
+    }
+
+    /**
+     * Called by the ItemTouchHelper when user is dragging a view out of bounds.
+     * <p/>
+     * You can override this method to decide how much RecyclerView should scroll in response
+     * to this action. Default implementation calculates a value based on the amount of View
+     * out of bounds and the time it spent there. The longer user keeps the View out of bounds,
+     * the faster the list will scroll. Similarly, the larger portion of the View is out of
+     * bounds, the faster the RecyclerView will scroll.
+     *
+     * @param recyclerView        The RecyclerView instance to which ItemTouchHelper is attached
+     *                            to.
+     * @param viewSize            The total size of the View in scroll direction, excluding
+     *                            item decorations.
+     * @param viewSizeOutOfBounds The total size of the View that is out of bounds. This value
+     *                            is negative if the View is dragged towards left or top edge.
+     * @param totalSize           The total size of RecyclerView in the scroll direction.
+     * @param msSinceStartScroll  The time passed since View is kept out of bounds.
+     * @return The amount that RecyclerView should scroll. Keep in mind that this value will
+     * be passed to {@link RecyclerView#scrollBy(int, int)} method.
+     */
+    public int interpolateOutOfBoundsScroll(RecyclerView recyclerView,
+                                            int viewSize, int viewSizeOutOfBounds,
+                                            int totalSize, long msSinceStartScroll) {
+//        final int maxScroll = getMaxDragScroll(recyclerView);
+        final int maxScroll = 20;//应该是20dp
+        final int absOutOfBounds = Math.abs(viewSizeOutOfBounds);
+        final int direction = (int) Math.signum(viewSizeOutOfBounds);
+        // might be negative if other direction
+        float outOfBoundsRatio = Math.min(1f, 1f * absOutOfBounds / viewSize);
+        final int cappedScroll = (int) (direction * maxScroll *
+                sDragViewScrollCapInterpolator.getInterpolation(outOfBoundsRatio));
+        final float timeRatio;
+        if (msSinceStartScroll > DRAG_SCROLL_ACCELERATION_LIMIT_TIME_MS) {
+            timeRatio = 1f;
+        } else {
+            timeRatio = (float) msSinceStartScroll / DRAG_SCROLL_ACCELERATION_LIMIT_TIME_MS;
+        }
+        final int value = (int) (cappedScroll * sDragScrollInterpolator
+                .getInterpolation(timeRatio));
+        if (value == 0) {
+            return viewSizeOutOfBounds > 0 ? 1 : -1;
+        }
+        return value;
+    }
+
+    private static final Interpolator sDragScrollInterpolator = new Interpolator() {
+        public float getInterpolation(float t) {
+            return t * t * t * t * t;
+        }
+    };
+    /**
+     * Drag scroll speed keeps accelerating until this many milliseconds before being capped.
+     */
+    private static final long DRAG_SCROLL_ACCELERATION_LIMIT_TIME_MS = 2000;
+    private static final Interpolator sDragViewScrollCapInterpolator = new Interpolator() {
+        public float getInterpolation(float t) {
+            t -= 1.0f;
+            return t * t * t * t * t + 1.0f;
+        }
+    };
 
     /**
      * 获取需要move的目标view，即toPosition
