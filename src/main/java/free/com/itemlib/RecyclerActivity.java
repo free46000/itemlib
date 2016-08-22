@@ -35,6 +35,9 @@ public class RecyclerActivity extends Activity {
     private PanelTouchHelper touchHelper;
 
 
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
