@@ -15,6 +15,8 @@ import android.view.animation.Interpolator;
  * Created by free46000 on 2016/8/19.
  */
 public class PanelTouchHelper {
+    public static final float SCROLL_BASE_STEP = 0.5F;
+    public static final int SCROLL_MAX_SPEED = 30;
     public static final int NONE = -1;
 
     private View currItemView;
@@ -27,6 +29,8 @@ public class PanelTouchHelper {
     private int lastChildPos = NONE;
 
     private float initTouchX, initTouchY;
+    private float lastTouchX, lastTouchY;
+    private RecyclerView lastRecyclerView;
 
     public PanelTouchHelper(RecyclerView parentRecycler) {
         this.parentRecycler = parentRecycler;
@@ -72,51 +76,18 @@ public class PanelTouchHelper {
             initTouchY = touchY;
         }
 
+        lastTouchX = touchX;
+        lastTouchY = touchY;
+
         if (currItemView != null) {
             floatViewHelper.updateView((int) touchX, (int) touchY);
-            View view = parentRecycler.findChildViewUnder(touchX, touchY);
-            int parentPos = getPositionByItemView(view);
-            if (parentPos != NONE && view instanceof RecyclerView) {
-                float childX = touchX - view.getLeft();
-                float childY = touchY;
-                View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
-
-                int childPos = getPositionByItemView(itemView);
-                System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY);
-                if (isSelectedRecyclerView(lastParentPos, parentPos)) {
-                    lastParentPos = parentPos;
-                    onDragListener.onRecyclerSelected((RecyclerView) view, parentPos);
-                } else if (isRealChangeRecyclerView(lastParentPos, parentPos, childPos)) {
-                    onDragListener.onRecyclerChanged((RecyclerView) parentRecycler.getChildAt(lastParentPos),
-                            (RecyclerView) view, lastChildPos, childPos);
-                    System.out.println("find_parent:" + lastParentPos + "-" + parentPos);
-                    //因为切换父控件，所以需要重置为NONE，不然上个的最后位置有可能超过当前的大小抛出错误
-                    lastChildPos = NONE;
-                    //在切换recycle view并且触摸到子recycle view的item的时候才真正去改变值
-                    lastParentPos = parentPos;
-                }
-
-
-                if (childPos != NONE) {
-                    if (isSelectedChildView(lastChildPos, childPos)) {
-                        currItemView = itemView;
-                        lastChildPos = childPos;
-                        onDragListener.onItemSelected(itemView, childPos);
-                    }
-
-                    int targetPos = getTargetChildPos(currItemView, ((RecyclerView) view), childX, childY);
-                    if (isNeedMove(currItemView, lastChildPos, targetPos, childY)) {
-                        onDragListener.onItemChanged((RecyclerView) view, lastChildPos, targetPos);
-
-                        System.out.println("find:" + lastParentPos + "-" + parentPos + "======" + lastChildPos + "-" + targetPos);
-                        lastChildPos = targetPos;
-                    }
-                }
-
-
-                scrollIfNecessary((RecyclerView) view, (int) touchX, (int) touchY);
-
+            moveIfNecessary(touchX, touchY);
+            if (lastRecyclerView != null) {
+                lastRecyclerView.removeCallbacks(mScrollRunnable);
+                mScrollRunnable.run();
+                lastRecyclerView.invalidate();
             }
+
             if (event.getActionMasked() == MotionEvent.ACTION_UP) {
                 if (currItemView != null) {
                     onDragListener.onDragFinish(lastChildPos);
@@ -134,27 +105,69 @@ public class PanelTouchHelper {
     }
 
 
-    private long mDragScrollStartTimeInMs;
-    private Rect mTmpRect;
+    private boolean moveIfNecessary(float touchX, float touchY) {
+        View view = parentRecycler.findChildViewUnder(touchX, touchY);
+        int parentPos = getPositionByItemView(view);
+        if (parentPos != NONE && view instanceof RecyclerView) {
+            lastRecyclerView = (RecyclerView) view;
+            float childX = touchX - view.getLeft();
+            float childY = touchY;
+            View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
 
-//    /**
-//     * When user drags a view to the edge, we start scrolling the LayoutManager as long as View
-//     * is partially out of bounds.
-//     */
-//    private final Runnable mScrollRunnable = new Runnable() {
-//
-//
-//        @Override
-//        public void run() {
-//            if (currItemView != null && scrollIfNecessary()) {
-//                if (mSelected != null) { //it might be lost during scrolling
-//                    moveIfNecessary(mSelected);
-//                }
-//                .removeCallbacks(mScrollRunnable);
-//                ViewCompat.postOnAnimation(mRecyclerView, this);
-//            }
-//        }
-//    };
+            int childPos = getPositionByItemView(itemView);
+            System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY);
+            if (isSelectedRecyclerView(lastParentPos, parentPos)) {
+                lastParentPos = parentPos;
+                onDragListener.onRecyclerSelected((RecyclerView) view, parentPos);
+            } else if (isRealChangeRecyclerView(lastParentPos, parentPos, childPos)) {
+                onDragListener.onRecyclerChanged((RecyclerView) parentRecycler.getChildAt(lastParentPos),
+                        (RecyclerView) view, lastChildPos, childPos);
+                System.out.println("find_parent:" + lastParentPos + "-" + parentPos);
+                //因为切换父控件，所以需要重置为NONE，不然上个的最后位置有可能超过当前的大小抛出错误
+                lastChildPos = NONE;
+                //在切换recycle view并且触摸到子recycle view的item的时候才真正去改变值
+                lastParentPos = parentPos;
+            }
+
+
+            if (childPos != NONE) {
+                if (isSelectedChildView(lastChildPos, childPos)) {
+                    currItemView = itemView;
+                    lastChildPos = childPos;
+                    onDragListener.onItemSelected(itemView, childPos);
+                }
+
+                int targetPos = getTargetChildPos(currItemView, ((RecyclerView) view), childX, childY);
+                if (isNeedMove(currItemView, lastChildPos, targetPos, childY)) {
+                    onDragListener.onItemChanged((RecyclerView) view, lastChildPos, targetPos);
+
+                    System.out.println("find:" + lastParentPos + "-" + parentPos + "======" + lastChildPos + "-" + targetPos);
+                    lastChildPos = targetPos;
+                }
+            }
+        }
+        return true;
+    }
+
+    private long mDragScrollStartTimeInMs;
+
+    /**
+     * When user drags a view to the edge, we start scrolling the LayoutManager as long as View
+     * is partially out of bounds.
+     */
+    private final Runnable mScrollRunnable = new Runnable() {
+
+
+        @Override
+        public void run() {
+            if (currItemView != null && scrollIfNecessary(lastRecyclerView, (int) lastTouchX, (int) lastTouchY)) {
+                //it might be lost during scrolling
+                moveIfNecessary(lastTouchX, lastTouchY);
+                lastRecyclerView.removeCallbacks(mScrollRunnable);
+                ViewCompat.postOnAnimation(lastRecyclerView, this);
+            }
+        }
+    };
 
     /**
      * If user drags the view to the edge, trigger a scroll if necessary.
@@ -168,12 +181,8 @@ public class PanelTouchHelper {
         final long scrollDuration = mDragScrollStartTimeInMs
                 == Long.MIN_VALUE ? 0 : now - mDragScrollStartTimeInMs;
         RecyclerView.LayoutManager lm = recyclerView.getLayoutManager();
-        if (mTmpRect == null) {
-            mTmpRect = new Rect();
-        }
         int scrollX = 0;
         int scrollY = 0;
-        lm.calculateItemDecorationsForChild(currViewHolder.itemView, mTmpRect);
 //        if (lm.canScrollHorizontally()) {
 //            final int leftDiff = curX - mTmpRect.left - recyclerView.getPaddingLeft();
 //            if (mDx < 0 && leftDiff < 0) {
@@ -187,34 +196,18 @@ public class PanelTouchHelper {
 //                }
 //            }
 //        }
-        int mDy = curY - (int) initTouchY;
-        if (lm.canScrollVertically()) {
-//            final int topDiff = curY - mTmpRect.top - recyclerView.getPaddingTop();
-            //原来是减去 mTmpRect.top
-            final int topDiff = curY - mTmpRect.bottom - recyclerView.getPaddingTop();
-            System.out.println("scroll:::::"+curY + "=" +mDy+"="+ mTmpRect.top + mTmpRect.bottom + recyclerView.getTop());
 
-            if (mDy < 0) {
-                scrollY = mDy;
-            } else if (mDy > 0) {
-                final int bottomDiff = curY + currViewHolder.itemView.getHeight() + mTmpRect.bottom -
-                        (recyclerView.getHeight() - recyclerView.getPaddingBottom());
-                if (bottomDiff > 0) {
-                    scrollY = bottomDiff;
-                }
+        if (lm.canScrollVertically()) {
+            int udLimit = onDragListener.getUpDownScrollLimit();
+            if (curY < udLimit) {
+                int level = SCROLL_MAX_SPEED * (udLimit - curY) / udLimit;
+                scrollY = -calcScrollDistance(level, scrollDuration);
+            } else if (curY > recyclerView.getHeight() - udLimit) {
+                int level = SCROLL_MAX_SPEED * (curY - recyclerView.getHeight() + udLimit) / udLimit;
+                scrollY = calcScrollDistance(level, scrollDuration);
             }
         }
-//        if (scrollX != 0) {
-//            scrollX = mCallback.interpolateOutOfBoundsScroll(mRecyclerView,
-//                    mSelected.itemView.getWidth(), scrollX,
-//                    mRecyclerView.getWidth(), scrollDuration);
-//        }
-        if (scrollY != 0) {
-            scrollY = scrollY < 0 ? -30 : 30;
-//            scrollY = interpolateOutOfBoundsScroll(recyclerView,
-//                    currItemView.getHeight(), scrollY,
-//                    recyclerView.getHeight(), scrollDuration);
-        }
+        System.out.println("scroll:::::" + scrollY + "=" + recyclerView.getHeight() + "curY::" + curY);
         if (scrollX != 0 || scrollY != 0) {
             if (mDragScrollStartTimeInMs == Long.MIN_VALUE) {
                 mDragScrollStartTimeInMs = now;
@@ -224,6 +217,11 @@ public class PanelTouchHelper {
         }
         mDragScrollStartTimeInMs = Long.MIN_VALUE;
         return false;
+    }
+
+    private int calcScrollDistance(int touchLevel, long scrollDuration) {
+        return (int) (touchLevel * SCROLL_BASE_STEP +  (scrollDuration / 200));
+
     }
 
     /**
@@ -250,7 +248,7 @@ public class PanelTouchHelper {
                                             int viewSize, int viewSizeOutOfBounds,
                                             int totalSize, long msSinceStartScroll) {
 //        final int maxScroll = getMaxDragScroll(recyclerView);
-        final int maxScroll = 20;//应该是20dp
+        final int maxScroll = 50;//应该是20dp
         final int absOutOfBounds = Math.abs(viewSizeOutOfBounds);
         final int direction = (int) Math.signum(viewSizeOutOfBounds);
         // might be negative if other direction
@@ -318,7 +316,8 @@ public class PanelTouchHelper {
             return false;
         }
         System.out.println("isNeedRemove-top:" + selectedView.getTop() + "======height:" + selectedView.getHeight() + "======touchY:" + touchY);
-        return Math.abs(touchY - selectedView.getTop()) > (selectedView.getHeight() / 2);
+        int top = selectedView.getTop() < 0 ? 0 : selectedView.getTop();
+        return Math.abs(touchY - top) > (selectedView.getHeight() / 2);
     }
 
     /**
@@ -430,14 +429,25 @@ public class PanelTouchHelper {
     }
 
 
-    public interface OnDragListener {
+    public static abstract class OnDragListener {
+        private int upDownLimit = 100;
+        private int leftRightLimit = 100;
+
+        public int getLeftRightScrollLimit() {
+            return leftRightLimit;
+        }
+
+        public int getUpDownScrollLimit() {
+            return upDownLimit;
+        }
+
         /**
          * 第一次被选中的时候回调
          *
          * @param selectedView 选中的RecyclerView
          * @param selectedPos  选中的位置
          */
-        void onRecyclerSelected(RecyclerView selectedView, int selectedPos);
+        public abstract void onRecyclerSelected(RecyclerView selectedView, int selectedPos);
 
         /**
          * 触摸时切换RecyclerView的时候回调
@@ -447,7 +457,7 @@ public class PanelTouchHelper {
          * @param itemFromPos 上个item选中的位置
          * @param itemToPos   当前item选中的位置
          */
-        void onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos);
+        public abstract void onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos);
 
         /**
          * 第一次被选中的时候回调
@@ -455,7 +465,7 @@ public class PanelTouchHelper {
          * @param selectedView 选中的RecyclerView
          * @param selectedPos  选中的位置
          */
-        void onItemSelected(View selectedView, int selectedPos);
+        public abstract void onItemSelected(View selectedView, int selectedPos);
 
         /**
          * 触摸时切换Item的时候回调
@@ -464,18 +474,18 @@ public class PanelTouchHelper {
          * @param fromPos      上个选中的位置
          * @param toPos        当前选中的位置
          */
-        void onItemChanged(RecyclerView recyclerView, int fromPos, int toPos);
+        public abstract void onItemChanged(RecyclerView recyclerView, int fromPos, int toPos);
 
         /**
          * 拖拽结束时回调
          */
-        void onDragFinish(int itemPos);
+        public abstract void onDragFinish(int itemPos);
 
 
         /**
          * 拖拽开始时回调
          */
-        void onDragStart();
+        public abstract void onDragStart();
     }
 
 

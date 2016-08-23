@@ -68,7 +68,7 @@ public class RecyclerActivity extends Activity {
         return super.dispatchTouchEvent(ev);
     }
 
-    class OnBaseDragListener implements PanelTouchHelper.OnDragListener {
+    class OnBaseDragListener extends PanelTouchHelper.OnDragListener {
         private Item currItem;
         private RecyclerView lastRecyclerView;
 
