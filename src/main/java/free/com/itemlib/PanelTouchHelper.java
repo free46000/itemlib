@@ -160,7 +160,9 @@ public class PanelTouchHelper {
 
         @Override
         public void run() {
-            if (currItemView != null && scrollIfNecessary(lastRecyclerView, (int) lastTouchX, (int) lastTouchY)) {
+            boolean isParentScroll = scrollIfNecessary(parentRecycler, (int) lastTouchX, (int) lastTouchY);
+            boolean isChildScroll = scrollIfNecessary(lastRecyclerView, (int) lastTouchX, (int) lastTouchY);
+            if (currItemView != null && (isParentScroll || isChildScroll)) {
                 //it might be lost during scrolling
                 moveIfNecessary(lastTouchX, lastTouchY);
                 lastRecyclerView.removeCallbacks(mScrollRunnable);
@@ -183,19 +185,16 @@ public class PanelTouchHelper {
         RecyclerView.LayoutManager lm = recyclerView.getLayoutManager();
         int scrollX = 0;
         int scrollY = 0;
-//        if (lm.canScrollHorizontally()) {
-//            final int leftDiff = curX - mTmpRect.left - recyclerView.getPaddingLeft();
-//            if (mDx < 0 && leftDiff < 0) {
-//                scrollX = leftDiff;
-//            } else if (mDx > 0) {
-//                final int rightDiff =
-//                        curX + mSelected.itemView.getWidth() + mTmpRect.right
-//                                - (mRecyclerView.getWidth() - mRecyclerView.getPaddingRight());
-//                if (rightDiff > 0) {
-//                    scrollX = rightDiff;
-//                }
-//            }
-//        }
+        if (lm.canScrollHorizontally()) {
+            int lrLimit = onDragListener.getLeftRightScrollLimit();
+            if (curX < lrLimit) {
+                int level = SCROLL_MAX_SPEED * (lrLimit - curX) / lrLimit;
+                scrollX = -calcScrollDistance(level, scrollDuration);
+            } else if (curX > recyclerView.getWidth() - lrLimit) {
+                int level = SCROLL_MAX_SPEED * (curX - recyclerView.getWidth() + lrLimit) / lrLimit;
+                scrollX = calcScrollDistance(level, scrollDuration);
+            }
+        }
 
         if (lm.canScrollVertically()) {
             int udLimit = onDragListener.getUpDownScrollLimit();
@@ -207,7 +206,9 @@ public class PanelTouchHelper {
                 scrollY = calcScrollDistance(level, scrollDuration);
             }
         }
-        System.out.println("scroll:::::" + scrollY + "=" + recyclerView.getHeight() + "curY::" + curY);
+
+        System.out.println("scroll:::::" + scrollY + "=" + recyclerView.getScrollY() + "curY::" + curY);
+        System.out.println("scroll:::::" + scrollX + "=" + recyclerView.getScrollX() + "curX::" + curX);
         if (scrollX != 0 || scrollY != 0) {
             if (mDragScrollStartTimeInMs == Long.MIN_VALUE) {
                 mDragScrollStartTimeInMs = now;
@@ -220,7 +221,7 @@ public class PanelTouchHelper {
     }
 
     private int calcScrollDistance(int touchLevel, long scrollDuration) {
-        return (int) (touchLevel * SCROLL_BASE_STEP +  (scrollDuration / 200));
+        return (int) (touchLevel * SCROLL_BASE_STEP + (scrollDuration / 200));
 
     }
 
@@ -430,8 +431,8 @@ public class PanelTouchHelper {
 
 
     public static abstract class OnDragListener {
-        private int upDownLimit = 100;
-        private int leftRightLimit = 100;
+        private int upDownLimit = 200;
+        private int leftRightLimit = 200;
 
         public int getLeftRightScrollLimit() {
             return leftRightLimit;

@@ -133,6 +133,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     }
 
     public void moveDataTest(int fromPos, int toPos) {
+//        notifyItemRangeChanged(fromPos > toPos ? toPos : fromPos, Math.abs(fromPos - toPos));
         if (fromPos > toPos) {
             for (int i = fromPos; i > toPos; i--) {
                 Collections.swap(dataItemList, i, i - 1);
