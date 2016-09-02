@@ -3,6 +3,7 @@ package free.com.itemlib.item;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -29,6 +30,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     private List<Item> dataItemList = new ArrayList<>();
     private List<Item> headItemList = new ArrayList<>();
     private List<Item> footItemList = new ArrayList<>();
+    private List<ItemViewHolder> viewHolderList = new ArrayList<>();
     protected OnItemClickListener onItemClickListener;
     protected OnItemLongClickListener onItemLongClickListener;
 
@@ -133,20 +135,25 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     }
 
     public void moveDataTest(int fromPos, int toPos) {
-//        notifyItemRangeChanged(fromPos > toPos ? toPos : fromPos, Math.abs(fromPos - toPos));
         if (fromPos > toPos) {
             for (int i = fromPos; i > toPos; i--) {
                 Collections.swap(dataItemList, i, i - 1);
+                getItemViewHolder(i).refreshView();
             }
         } else {
             for (int i = fromPos; i < toPos; i++) {
                 Collections.swap(dataItemList, i, i + 1);
+                getItemViewHolder(i).refreshView();
             }
         }
-
+        getItemViewHolder(toPos).refreshView();
+//        if (fromPos == 0) {
+//            notifyItemRangeChanged(fromPos > toPos ? toPos : fromPos, Math.abs(fromPos - toPos) );
+//        } else {
+//            notifyItemMoved(fromPos, toPos);
+//        }
 
 //        Collections.swap(dataItemList, fromPos, toPos);
-        notifyItemMoved(fromPos, toPos);
 
     }
 
@@ -170,6 +177,15 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         itemLoadMore = null;
         animationLoader.clear();
         shrinkViewUtil.clear();
+    }
+
+    public ItemViewHolder getItemViewHolder(int position) {
+        for (ItemViewHolder viewHolder : viewHolderList) {
+            if (viewHolder.location == position) {
+                return viewHolder;
+            }
+        }
+        return null;
     }
 
     public List<Item> getDataList() {
@@ -209,6 +225,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         View view = itemViewHolder.getItemView();
         RecyclerViewHolder myViewHolder = new RecyclerViewHolder(view);
         myViewHolder.itemViewHolder = itemViewHolder;
+        viewHolderList.add(itemViewHolder);
         return myViewHolder;
     }
 

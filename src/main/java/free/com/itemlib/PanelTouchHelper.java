@@ -3,13 +3,22 @@ package free.com.itemlib;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.support.v4.view.GestureDetectorCompat;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Interpolator;
+
+import free.com.itemlib.item.BaseItemAdapter;
+import free.com.itemlib.item.view.ItemViewHolder;
+import free.com.itemlib.item.view.content.Item;
 
 /**
  * Created by free46000 on 2016/8/19.
@@ -30,11 +39,13 @@ public class PanelTouchHelper {
 
     private float initTouchX, initTouchY;
     private float lastTouchX, lastTouchY;
+    private int offsetX, offsetY;
     private RecyclerView lastRecyclerView;
 
     public PanelTouchHelper(RecyclerView parentRecycler) {
         this.parentRecycler = parentRecycler;
         floatViewHelper = new DragFloatViewHelper();
+//        parentRecycler.addOnItemTouchListener(mOnItemTouchListener);
 
     }
 
@@ -45,11 +56,24 @@ public class PanelTouchHelper {
      * @param floatView  需要跟随手势浮动的 View
      */
     public void startDrag(RecyclerView.ViewHolder viewHolder, View floatView) {
+        startDrag(viewHolder, floatView, 0, 0);
+    }
+
+    /**
+     * 开始拖拽
+     *
+     * @param viewHolder 选中的Item的ViewHolder
+     * @param floatView  需要跟随手势浮动的 View
+     */
+    public void startDrag(RecyclerView.ViewHolder viewHolder, View floatView, int offsetX, int offsetY) {
         currItemView = viewHolder.itemView;
         this.currViewHolder = viewHolder;
         onDragListener.onDragStart();
         floatViewHelper.createView(floatView, currItemView);
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
     }
+
 
     /**
      * 设置拖拽回调Listener
@@ -88,20 +112,24 @@ public class PanelTouchHelper {
                 lastRecyclerView.invalidate();
             }
 
-            if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                if (currItemView != null) {
-                    onDragListener.onDragFinish(lastChildPos);
-                    floatViewHelper.removeView();
-                }
-
-
-                currItemView = null;
-                currViewHolder = null;
+            if (event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                stopDrag();
             }
 
             return true;
         }
         return false;
+    }
+
+    private void stopDrag() {
+        if (currItemView != null) {
+            onDragListener.onDragFinish(lastChildPos);
+            floatViewHelper.removeView();
+        }
+
+
+        currItemView = null;
+        currViewHolder = null;
     }
 
 
@@ -175,7 +203,7 @@ public class PanelTouchHelper {
      * If user drags the view to the edge, trigger a scroll if necessary.
      */
     private boolean scrollIfNecessary(RecyclerView recyclerView, int curX, int curY) {
-        if (currViewHolder == null) {
+        if (currItemView == null) {
             mDragScrollStartTimeInMs = Long.MIN_VALUE;
             return false;
         }
@@ -207,8 +235,8 @@ public class PanelTouchHelper {
             }
         }
 
-        System.out.println("scroll:::::" + scrollY + "=" + recyclerView.getScrollY() + "curY::" + curY);
-        System.out.println("scroll:::::" + scrollX + "=" + recyclerView.getScrollX() + "curX::" + curX);
+//        System.out.println("scroll:::::" + scrollY + "=" + recyclerView.getScrollY() + "curY::" + curY);
+//        System.out.println("scroll:::::" + scrollX + "=" + recyclerView.getScrollX() + "curX::" + curX);
         if (scrollX != 0 || scrollY != 0) {
             if (mDragScrollStartTimeInMs == Long.MIN_VALUE) {
                 mDragScrollStartTimeInMs = now;
@@ -227,7 +255,7 @@ public class PanelTouchHelper {
 
     /**
      * Called by the ItemTouchHelper when user is dragging a view out of bounds.
-     * <p/>
+     * <p>
      * You can override this method to decide how much RecyclerView should scroll in response
      * to this action. Default implementation calculates a value based on the amount of View
      * out of bounds and the time it spent there. The longer user keeps the View out of bounds,
@@ -317,7 +345,7 @@ public class PanelTouchHelper {
             return false;
         }
         System.out.println("isNeedRemove-top:" + selectedView.getTop() + "======height:" + selectedView.getHeight() + "======touchY:" + touchY);
-        int top = selectedView.getTop() < 0 ? 0 : selectedView.getTop();
+        int top = selectedView.getTop() < 0 || selectedView.getTop() > 1500 ? 0 : selectedView.getTop();
         return Math.abs(touchY - top) > (selectedView.getHeight() / 2);
     }
 
@@ -398,9 +426,16 @@ public class PanelTouchHelper {
             mParams.gravity = Gravity.START | Gravity.TOP;
             mParams.width = coverView.getWidth();//窗口的宽和高
             mParams.height = coverView.getHeight();
-            mParams.x = (int) coverView.getX();//窗口位置的偏移量
-            mParams.y = (int) coverView.getY();
-            mParams.alpha = 0.6f;
+            int[] parentLocation = new int[2];
+            parentRecycler.getLocationInWindow(parentLocation);
+            int[] location = new int[2];
+            coverView.getLocationInWindow(location);
+            mParams.x = location[0] - parentLocation[0];//窗口位置的偏移量
+            mParams.y = location[1] - parentLocation[1];
+//            mParams.alpha = 0.6f;
+            floatView.setScaleX(0.95f);
+            floatView.setScaleY(0.95f);
+            floatView.setRotation(0.9f);
             wManager.addView(floatView, mParams);
         }
 
@@ -411,9 +446,10 @@ public class PanelTouchHelper {
          * @param y Y
          */
         public void updateView(int x, int y) {
+//            System.out.println("=x:::::::" + x + "=y:::::" + y);
             if (currTouchedView != null) {
-                mParams.x = x;
-                mParams.y = y;
+                mParams.x = x - offsetX;
+                mParams.y = y - offsetY;
                 wManager.updateViewLayout(currTouchedView, mParams);
             }
         }
@@ -431,7 +467,7 @@ public class PanelTouchHelper {
 
 
     public static abstract class OnDragListener {
-        private int upDownLimit = 200;
+        private int upDownLimit = 100;
         private int leftRightLimit = 200;
 
         public int getLeftRightScrollLimit() {
@@ -489,5 +525,122 @@ public class PanelTouchHelper {
         public abstract void onDragStart();
     }
 
+    /**
+     * The pointer we are tracking.
+     */
+    int mActivePointerId = -1;
+    /**
+     * Used to detect long press.
+     */
+    private GestureDetectorCompat mGestureDetector;
+
+    private final RecyclerView.OnItemTouchListener mOnItemTouchListener
+            = new RecyclerView.OnItemTouchListener() {
+        @Override
+        public boolean onInterceptTouchEvent(RecyclerView recyclerView, MotionEvent event) {
+            mGestureDetector.onTouchEvent(event);
+            onTouch(event, event.getX(), event.getY());
+            return currItemView != null;
+        }
+
+        @Override
+        public void onTouchEvent(RecyclerView recyclerView, MotionEvent event) {
+            mGestureDetector.onTouchEvent(event);
+        }
+
+        @Override
+        public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+            if (!disallowIntercept) {
+                return;
+            }
+            stopDrag();
+        }
+    };
+
+    private class ItemTouchHelperGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+            float touchX = e.getX();
+            float touchY = e.getY();
+            View view = parentRecycler.findChildViewUnder(e.getX(), e.getY());
+            if (view != null && view instanceof RecyclerView) {
+                float childX = touchX - view.getLeft();
+                float childY = touchY;
+                View childView = ((RecyclerView) view).findChildViewUnder(childX, childY);
+                if (childView != null) {
+                    offsetX = (int) (childView.getX() - childX);
+                    offsetY = (int) (childView.getY() - childY);
+                    Object tag = childView.getTag();
+                    if (tag != null && tag instanceof ItemViewHolder) {
+                        Item item = ((ItemViewHolder) tag).getCurrItem();
+                        View floatView = item.newItemView2Show(childView.getContext(), null);
+                        setOnDragListener(new OnBaseDragListener(item));
+                        startDrag(((RecyclerView) view).getChildViewHolder(childView), floatView);
+                        if (item instanceof MainActivity.ItemText) {
+                            ((MainActivity.ItemText) item).setGravity(View.INVISIBLE);
+                            ((ItemViewHolder) tag).refreshView();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    class OnBaseDragListener extends PanelTouchHelper.OnDragListener {
+        private Item currItem;
+        private RecyclerView lastRecyclerView;
+
+        public OnBaseDragListener(Item currItem) {
+            this.currItem = currItem;
+        }
+
+        public void onRecyclerSelected(RecyclerView recyclerView, int selectedPos) {
+            lastRecyclerView = recyclerView;
+        }
+
+        public void onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos) {
+            BaseItemAdapter adapter = (BaseItemAdapter) fromView.getAdapter();
+            adapter.removeDataTest(itemFromPos);
+            adapter = (BaseItemAdapter) toView.getAdapter();
+            adapter.addDataTest(itemToPos, currItem);
+
+            lastRecyclerView = toView;
+
+        }
+
+        public void onItemSelected(View selectedView, int selectedPos) {
+        }
+
+        public void onItemChanged(RecyclerView recyclerView, int fromPos, int toPos) {
+            BaseItemAdapter adapter = (BaseItemAdapter) recyclerView.getAdapter();
+            adapter.moveDataTest(fromPos, toPos);
+        }
+
+        public void onDragFinish(int itemPos) {
+            ((MainActivity.ItemText) currItem).setGravity(View.VISIBLE);
+            lastRecyclerView.getAdapter().notifyDataSetChanged();
+//            for (int i = 0; i < parentRecycler.getChildCount(); i++) {
+//                View childView = parentRecycler.getChildAt(i);
+//                if (childView instanceof RecyclerView) {
+//                    ((RecyclerView) childView).getAdapter().notifyDataSetChanged();
+//                }
+//            }
+        }
+
+        public void onDragStart() {
+//            if (currItem instanceof MainActivity.ItemText) {
+//                ((MainActivity.ItemText) currItem).setGravity(View.INVISIBLE);
+//                itemViewHolder.refreshView();
+//            }
+        }
+
+
+    }
 
 }

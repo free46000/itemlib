@@ -35,6 +35,9 @@ public class RecyclerActivity extends Activity {
     private BaseItemAdapter baseItemAdapter;
     private PanelTouchHelper touchHelper;
 
+    private float lastTouchX;
+    private float lastTouchY;
+
 
 
 
@@ -60,9 +63,9 @@ public class RecyclerActivity extends Activity {
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         int contentTop = getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
-        float currX = ev.getX();
-        float currY = ev.getY() - contentTop;
-        if (touchHelper.onTouch(ev, currX, currY)) {
+        lastTouchX = ev.getX();
+        lastTouchY = ev.getY() - contentTop;
+        if (touchHelper.onTouch(ev, lastTouchX, lastTouchY)) {
             return true;
         }
         return super.dispatchTouchEvent(ev);
@@ -142,14 +145,16 @@ public class RecyclerActivity extends Activity {
 
                 @Override
                 public void onItemLongClick(Item item, ItemViewHolder itemViewHolder, int location, int columnLoc) {
+                    View floatView = item.newItemView2Show(RecyclerActivity.this, null);
+                    View itemView = itemViewHolder.getItemView();
+                    int offsetX = (int) (lastTouchX - recyclerView.getX() - itemView.getX());
+                    int offsetY = (int) (lastTouchY - recyclerView.getY() - itemView.getY());
+                    touchHelper.setOnDragListener(new OnBaseDragListener(item));
+                    touchHelper.startDrag(recyclerView.getChildViewHolder(itemView), floatView,offsetX,offsetY);
                     if (item instanceof MainActivity.ItemText) {
                         ((MainActivity.ItemText) item).setGravity(View.INVISIBLE);
                         itemViewHolder.refreshView();
                     }
-                    View floatView = item.newItemView2Show(RecyclerActivity.this, null);
-                    View itemView = itemViewHolder.getItemView();
-                    touchHelper.setOnDragListener(new OnBaseDragListener(item));
-                    touchHelper.startDrag(recyclerView.getChildViewHolder(itemView), floatView);
                 }
 
 

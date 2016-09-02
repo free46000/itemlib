@@ -1,4 +1,7 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 apply plugin: 'com.android.library'
+apply plugin: 'maven'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -8,7 +11,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "default"
     }
     buildTypes {
         release {
@@ -16,7 +19,35 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    // 3.maven-路径
+    uploadArchives {
+        repositories.mavenDeployer {
+            def deployPath = file('../testrecyclerview/libs')
+            def deployPath_lcandroid = file('../../lcandroid/lesschat/app/libs')
+            println(deployPath_lcandroid)
+            repository(url: "file://${deployPath.absolutePath}" )
+            repository(url: "file://${deployPath_lcandroid.absolutePath}" )
+            pom.project {
+                groupId 'com.free.itemlib'
+                artifactId 'itemlib'
+                version android.defaultConfig.versionName
+            }
+        }
+    }
 }
+
+task appSync(type:Exec) {
+    workingDir '../../FreeCommon'
+    if (Os.isFamily(Os.FAMILY_MAC)) {
+        commandLine 'chmod', '+x', 'gradlew'
+        commandLine './gradlew', ':app:generateReleaseSources'
+    } else if (Os.isFamily(Os.FAMILY_WINDOWS)){
+        commandLine 'cmd', '/c', 'gradlew', ':app:generateReleaseSources'
+    }
+}
+
+appSync.dependsOn uploadArchives
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])

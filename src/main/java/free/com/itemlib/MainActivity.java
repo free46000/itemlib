@@ -34,6 +34,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        CrashHandler.getInstance().init(this);
+
+
         startActivity(new Intent(this, RecyclerActivity.class));
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
@@ -227,7 +230,7 @@ public class MainActivity extends Activity {
             public void setData(ItemText itemContent) {
                 textView.setText(itemContent.getValue());
                 textView.setHeight(100);
-                textView.setVisibility(currItem.getGravity());
+                itemView.setVisibility(currItem.getGravity());
                 if (isFullSpan()) {
 //                    itemView.setBackgroundColor(0xFFDD66CC);
                     textView.setHeight(60);
