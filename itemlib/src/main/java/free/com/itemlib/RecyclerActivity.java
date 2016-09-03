@@ -137,7 +137,7 @@ public class RecyclerActivity extends Activity {
 
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             final BaseItemAdapter baseItemAdapter = new BaseItemAdapter(context);
-                baseItemAdapter.setDataItemList(getItemList(length));
+                baseItemAdapter.addDataItemList(getItemList(length));
             recyclerView.setAdapter(baseItemAdapter);
 
             baseItemAdapter.setOnItemLongClickListener(new OnItemLongClickListener() {

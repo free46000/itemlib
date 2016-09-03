@@ -11,6 +11,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        startActivity(new Intent(this,));
+        startActivity(new Intent(this, free.com.itemlib.MainActivity.class));
     }
 }

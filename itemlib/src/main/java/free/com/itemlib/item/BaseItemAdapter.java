@@ -77,26 +77,52 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     /**
      * 为指定位置添加数据源 建议动态添加的时候使用此方法，比直接set效率更高
      *
-     * @param position 位置
+     * @param position 一定要包含HeadView的count #getHeadCount()
      * @param item     数据源Item
      */
-    public void addDataItem(int position, Item item) {
-        addDataItem(item);
+    public void addDataItem(int position, Item... item) {
+        addData(position, Arrays.asList(item));
+    }
+
+    /**
+     * 设置Item最终调用方法
+     */
+    private void setData(List<? extends Item> itemList) {
+        clearDataExcludeHeadFoot();
+        dataItemList = (List<Item>) itemList;
+        shrinkViewUtil.initShrinkParams(dataItemList);
+        notifyDataSetChanged();
+    }
+
+    private void addData(List<? extends Item> itemList) {
+        addData(dataItemList.size() + getHeadCount(), itemList);
+    }
+
+    /**
+     * 添加Item最终调用方法
+     * @param position 要包含HeadView的count #getHeadCount()
+     */
+    private void addData(int position, List<? extends Item> itemList) {
+        dataItemList.addAll(position - getHeadCount(), itemList);
+        shrinkViewUtil.addShrinkParams(itemList);
+        notifyItemRangeInserted(position, itemList.size());
     }
 
     /**
      * 移动Item的位置 包括数据源和界面的移动
      *
-     * @param fromPosition Item之前所在位置
-     * @param toPosition   Item新的位置
+     * @param fromPosition Item之前所在位置 要包含HeadView的count #getHeadCount()
+     * @param toPosition   Item新的位置 要包含HeadView的count #getHeadCount()
      */
     public void moveDataItem(int fromPosition, int toPosition) {
-        if (fromPosition > toPosition) {
-            for (int i = fromPosition; i > toPosition; i--) {
+        int fromDataPos = fromPosition - getHeadCount();
+        int toDatePos = toPosition - getHeadCount();
+        if (fromDataPos > toDatePos) {
+            for (int i = fromDataPos; i > toDatePos; i--) {
                 Collections.swap(dataItemList, i, i - 1);
             }
         } else {
-            for (int i = fromPosition; i < toPosition; i++) {
+            for (int i = fromDataPos; i < toDatePos; i++) {
                 Collections.swap(dataItemList, i, i + 1);
             }
         }
@@ -109,10 +135,10 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     /**
      * 移除Item 包括数据源和界面的移除
      *
-     * @param position 需要被移除Item的position
+     * @param position 需要被移除Item的position 要包含HeadView的count #getHeadCount()
      */
     public void removeDataItem(int position) {
-        dataItemList.remove(position);
+        dataItemList.remove(position - getHeadCount());
         notifyItemRemoved(position);
     }
 
@@ -194,39 +220,24 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     }
 
     /**
-     * 设置Item最终调用方法
-     */
-    private void setData(List<? extends Item> itemList) {
-        clearData();
-        dataItemList = (List<Item>) itemList;
-        shrinkViewUtil.initShrinkParams(dataItemList);
-        notifyDataSetChanged();
-    }
-
-    private void addData(List<? extends Item> itemList) {
-        addData(itemList.size(), itemList);
-    }
-
-    /**
-     * 添加Item最终调用方法
-     */
-    private void addData(int position, List<? extends Item> itemList) {
-        dataItemList.addAll(position, itemList);
-        shrinkViewUtil.addShrinkParams(itemList);
-        notifyItemRangeInserted(dataItemList.size() - 1 + getHeadCount(), position);
-    }
-
-    /**
      * 清空adapter 不只是单纯清空数据源
      */
     public void clearData() {
-        dataItemList.clear();
         headItemList.clear();
         footItemList.clear();
+        itemLoadMore = null;
+
+        clearDataExcludeHeadFoot();
+    }
+
+    /**
+     * 清空adapter除了Head和Foot 不只是单纯清空数据源
+     */
+    public void clearDataExcludeHeadFoot() {
+        dataItemList.clear();
         mTypeList.clear();
         mTypeItemList.clear();
 
-        itemLoadMore = null;
         animationLoader.clear();
         shrinkViewUtil.clear();
     }
@@ -314,8 +325,6 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
 
     /**
      * 设置当前Item展示时是否全行，仅在StaggeredGridLayoutManager用到
-     *
-     * @param holder
      */
     protected void setFullSpan(RecyclerView.ViewHolder holder) {
         if (holder.itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams) {
