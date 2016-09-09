@@ -2,6 +2,7 @@ package free.com.itemlib.item.view;
 
 import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
 
 import java.util.Map;
 
@@ -15,8 +16,8 @@ import free.com.itemlib.item.view.content.ItemInput;
  */
 public class ItemInputView<T extends ItemInput> extends ItemBaseView<T> {
 
-    public ItemInputView(Context context, T item) {
-        super(context, item);
+    public ItemInputView(Context context, T item, ViewGroup viewGroup) {
+        super(context, item, viewGroup);
     }
 
     @Deprecated

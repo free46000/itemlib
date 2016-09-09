@@ -39,7 +39,7 @@ public class ItemLoadMore extends ItemImpl {
     @Override
     public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
         if (itemViewHolder == null)
-            itemViewHolder = new ItemLoadMoreView(context, this);
+            itemViewHolder = new ItemLoadMoreView(context, this, parent);
         return itemViewHolder;
     }
 

@@ -24,7 +24,6 @@ public class ItemSimple extends ItemImpl {
 
     @Override
     public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
-
         return new ItemSimpleView(context, this, itemView);
     }
 

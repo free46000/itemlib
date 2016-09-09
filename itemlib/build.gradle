@@ -23,7 +23,8 @@ android {
     // 3.maven-路径
     uploadArchives {
         repositories.mavenDeployer {
-            def deployPath = file('../testrecyclerview/libs')
+//            def deployPath = file('../testrecyclerview/libs')
+            def deployPath = file('../../lcandroid/lesschat/app/libs')
             repository(url: "file://${deployPath.absolutePath}" )
             pom.project {
                 groupId 'com.free.itemlib'
@@ -53,4 +54,5 @@ dependencies {
     // App's dependencies, including test
     compile "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
     compile "com.android.support:recyclerview-v7:$rootProject.supportLibraryVersion"
+
 }

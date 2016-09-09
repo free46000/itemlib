@@ -26,4 +26,7 @@ dependencies {
     compile "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
 
     compile project(':itemlib')
+
+
+
 }

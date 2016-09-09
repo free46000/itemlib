@@ -2,6 +2,7 @@ package free.com.itemlib.item.view;
 
 import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
 
 import free.com.itemlib.item.view.content.ItemBase;
 import free.com.itemlib.item.view.content.ItemSimple;
@@ -11,8 +12,8 @@ import free.com.itemlib.item.view.content.ItemSimple;
  */
 public class ItemBaseView<T extends ItemBase> extends ItemViewHolder<T> {
 
-    public ItemBaseView(Context context, T item) {
-        super(context, item);
+    public ItemBaseView(Context context, T item, ViewGroup viewGroup) {
+        super(context, item, viewGroup);
     }
 
     @Override

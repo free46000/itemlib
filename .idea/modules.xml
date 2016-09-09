@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Itemlib.iml" filepath="$PROJECT_DIR$/Itemlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/itemlib/itemlib.iml" filepath="$PROJECT_DIR$/itemlib/itemlib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/itemlib.iml" filepath="$PROJECT_DIR$/itemlib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/itemlib/itemlib-itemlib.iml" filepath="$PROJECT_DIR$/itemlib/itemlib-itemlib.iml" />
     </modules>
   </component>
 </project>

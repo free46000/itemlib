@@ -67,7 +67,7 @@ public class ItemGroup extends ItemImpl {
 
     @Override
     public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
-        return new ItemViewGroupHolder(context, this);
+        return new ItemViewGroupHolder(context, this, parent);
     }
 
     @Override

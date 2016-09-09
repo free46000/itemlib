@@ -2,6 +2,7 @@ package free.com.itemlib.item.view;
 
 import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 
@@ -19,7 +20,11 @@ public class ItemViewGroupHolder<T extends ItemGroup> extends ItemViewHolder<T> 
     protected List<ItemViewHolder> viewHolderList;
 
     public ItemViewGroupHolder(Context context, T itemGroup) {
-        super(context, itemGroup);
+        this(context, itemGroup, null);
+    }
+
+    public ItemViewGroupHolder(Context context, T itemGroup, ViewGroup viewGroup) {
+        super(context, itemGroup, viewGroup);
         viewHolderList = initItemViewHolderList(itemGroup.getItemList());
     }
 

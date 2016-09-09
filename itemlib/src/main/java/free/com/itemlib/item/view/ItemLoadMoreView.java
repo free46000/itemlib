@@ -3,6 +3,7 @@ package free.com.itemlib.item.view;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -17,8 +18,8 @@ public class ItemLoadMoreView extends ItemViewHolder<ItemLoadMore> {
     private TextView loadMoreView;
     private OnLoadMoreListener loadMoreListener;
 
-    public ItemLoadMoreView(Context context, ItemLoadMore itemLoadMore) {
-        super(context, itemLoadMore);
+    public ItemLoadMoreView(Context context, ItemLoadMore itemLoadMore, ViewGroup viewGroup) {
+        super(context, itemLoadMore, viewGroup);
     }
 
     @Override

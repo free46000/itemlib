@@ -27,7 +27,7 @@ public abstract class ItemInput extends ItemBase {
 
     @Override
     public ItemViewHolder newItemViewHolder(Context context, ViewGroup parent) {
-        return new ItemInputView<>(context, this);
+        return new ItemInputView<>(context, this, parent);
     }
 
     public Validate.Rule getRule() {
