@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Interpolator;
@@ -22,6 +23,8 @@ public class PanelTouchHelper {
     public static final float SCROLL_BASE_STEP = 0.5F;
     public static final int SCROLL_MAX_SPEED = 30;
     public static final int NONE = -1;
+
+    private long mDragScrollStartTimeInMs;
 
     private Window window;
     private View currItemView;
@@ -53,22 +56,10 @@ public class PanelTouchHelper {
      * @param floatView  需要跟随手势浮动的 View
      */
     public void startDrag(RecyclerView.ViewHolder viewHolder, View floatView) {
-        startDrag(viewHolder, floatView, 0, 0);
-    }
-
-    /**
-     * 开始拖拽
-     *
-     * @param viewHolder 选中的Item的ViewHolder
-     * @param floatView  需要跟随手势浮动的 View
-     */
-    public void startDrag(RecyclerView.ViewHolder viewHolder, View floatView, int offsetX, int offsetY) {
         currItemView = viewHolder.itemView;
         this.currViewHolder = viewHolder;
         onDragListener.onDragStart();
         floatViewHelper.createView(floatView, currItemView);
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
     }
 
 
@@ -84,25 +75,23 @@ public class PanelTouchHelper {
     /**
      * touch事件处理
      *
-     * @param event  touch的event
-     * @param touchX touchX
-     * @param touchY touchY
+     * @param event touch的event
      * @return true表示消耗掉事件
      */
-    public boolean onTouch(MotionEvent event, float touchX, float touchY) {
+    public boolean onTouch(MotionEvent event) {
+        lastTouchX = event.getRawX();
+        lastTouchY = event.getRawY();
+
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             lastChildPos = NONE;
             lastParentPos = NONE;
-            initTouchX = touchX;
-            initTouchY = touchY;
+            initTouchX = lastTouchX;
+            initTouchY = lastTouchY;
         }
 
-        lastTouchX = touchX;
-        lastTouchY = touchY;
-
         if (currItemView != null) {
-            floatViewHelper.updateView((int) touchX, (int) touchY);
-            moveIfNecessary(touchX, touchY);
+            floatViewHelper.updateView((int) lastTouchX, (int) lastTouchY);
+            moveIfNecessary(lastTouchX, lastTouchY);
             if (lastRecyclerView != null) {
                 lastRecyclerView.removeCallbacks(mScrollRunnable);
                 mScrollRunnable.run();
@@ -133,27 +122,34 @@ public class PanelTouchHelper {
     private boolean moveIfNecessary(float touchX, float touchY) {
         View view = parentRecycler.findChildViewUnder(touchX, touchY);
         int parentPos = getPositionByItemView(view);
-        if (parentPos != NONE && view instanceof RecyclerView) {
-            lastRecyclerView = (RecyclerView) view;
-            float childX = touchX - view.getLeft();
-            float childY = touchY - view.getTop();
-            View itemView = ((RecyclerView) view).findChildViewUnder(childX, childY);
+        RecyclerView verticalRecycler = null;
+        if (parentPos != NONE) {
+            verticalRecycler = findRecyclerView(view);
+        }
+        if (verticalRecycler != null) {
+            int[] location = new int[2];
+            verticalRecycler.getLocationOnScreen(location);
+
+            float childX = touchX - location[0];
+            float childY = touchY - location[1];
+            View itemView = verticalRecycler.findChildViewUnder(childX, childY);
 
             int childPos = getPositionByItemView(itemView);
             System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY);
             if (isSelectedRecyclerView(lastParentPos, parentPos)) {
                 lastParentPos = parentPos;
-                onDragListener.onRecyclerSelected((RecyclerView) view, parentPos);
+                onDragListener.onRecyclerSelected(verticalRecycler, parentPos);
+                lastRecyclerView = verticalRecycler;
             } else if (isRealChangeRecyclerView(lastParentPos, parentPos, childPos)) {
-                onDragListener.onRecyclerChanged((RecyclerView) parentRecycler.getChildAt(lastParentPos),
-                        (RecyclerView) view, lastChildPos, childPos);
+                onDragListener.onRecyclerChanged(lastRecyclerView,
+                        verticalRecycler, lastChildPos, childPos);
                 System.out.println("find_parent:" + lastParentPos + "-" + parentPos);
                 //因为切换父控件，所以需要重置为NONE，不然上个的最后位置有可能超过当前的大小抛出错误
                 lastChildPos = NONE;
                 //在切换recycle view并且触摸到子recycle view的item的时候才真正去改变值
                 lastParentPos = parentPos;
+                lastRecyclerView = verticalRecycler;
             }
-
 
             if (childPos != NONE) {
                 if (isSelectedChildView(lastChildPos, childPos)) {
@@ -162,11 +158,11 @@ public class PanelTouchHelper {
                     onDragListener.onItemSelected(itemView, childPos);
                 }
 
-                int targetPos = getTargetChildPos(currItemView, ((RecyclerView) view), childX, childY);
+                int targetPos = getTargetChildPos(currItemView, verticalRecycler, childX, childY);
                 if (isNeedMove(currItemView, lastChildPos, targetPos, childY)) {
-                    onDragListener.onItemChanged((RecyclerView) view, lastChildPos, targetPos);
+                    onDragListener.onItemChanged(verticalRecycler, lastChildPos, targetPos);
                     if (lastChildPos == 0 || targetPos == 0) {
-                        ((RecyclerView) view).scrollToPosition(0);
+                        verticalRecycler.scrollToPosition(0);
                     }
                     System.out.println("find:" + lastParentPos + "-" + parentPos + "======" + lastChildPos + "-" + targetPos);
                     lastChildPos = targetPos;
@@ -176,7 +172,19 @@ public class PanelTouchHelper {
         return true;
     }
 
-    private long mDragScrollStartTimeInMs;
+    protected RecyclerView findRecyclerView(View view) {
+        if (view instanceof RecyclerView) {
+            return (RecyclerView) view;
+        } else if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                if (((ViewGroup) view).getChildAt(i) instanceof RecyclerView) {
+                    return (RecyclerView) ((ViewGroup) view).getChildAt(i);
+                }
+            }
+        }
+        return null;
+    }
+
 
     /**
      * When user drags a view to the edge, we start scrolling the LayoutManager as long as View
@@ -250,25 +258,7 @@ public class PanelTouchHelper {
 
     private int calcScrollDistance(int touchLevel, long scrollDuration) {
         return (int) (touchLevel * SCROLL_BASE_STEP + (scrollDuration / 200));
-
     }
-
-
-    private static final Interpolator sDragScrollInterpolator = new Interpolator() {
-        public float getInterpolation(float t) {
-            return t * t * t * t * t;
-        }
-    };
-    /**
-     * Drag scroll speed keeps accelerating until this many milliseconds before being capped.
-     */
-    private static final long DRAG_SCROLL_ACCELERATION_LIMIT_TIME_MS = 2000;
-    private static final Interpolator sDragViewScrollCapInterpolator = new Interpolator() {
-        public float getInterpolation(float t) {
-            t -= 1.0f;
-            return t * t * t * t * t + 1.0f;
-        }
-    };
 
     /**
      * 获取需要move的目标view，即toPosition
@@ -359,11 +349,11 @@ public class PanelTouchHelper {
         return lastChildPos == NONE && currChildPos != NONE;
     }
 
+
     class DragFloatViewHelper {
         private View currTouchedView;
         private WindowManager wManager;
         private WindowManager.LayoutParams mParams;
-        private int titleHeight;
 
         /**
          * 创建浮层view
@@ -373,21 +363,23 @@ public class PanelTouchHelper {
          */
         public void createView(View floatView, View coverView) {
             currTouchedView = floatView;
-            titleHeight = getTitleHeight();
 
             wManager = (WindowManager) floatView.getContext().getSystemService(
                     Context.WINDOW_SERVICE);
             mParams = initParams(floatView);
             mParams.width = coverView.getWidth();//窗口的宽和高
             mParams.height = coverView.getHeight();
-            int[] parentLocation = new int[2];
-            parentRecycler.getLocationInWindow(parentLocation);
             int[] location = getLocation(coverView);
             mParams.x = location[0];//窗口位置的偏移量
             mParams.y = location[1];
             modifyFloatView();
             wManager.addView(floatView, mParams);
 
+
+            System.out.println(offsetX + "offsetXoffsetXoffsetXoffsetX111111" + offsetY + "==" + location[0] + location[1]);
+            offsetX = (int) (lastTouchX - location[0]);
+            offsetY = (int) (lastTouchY - location[1]);
+            System.out.println(offsetX + "offsetXoffsetXoffsetXoffsetX222222" + offsetY);
         }
 
         protected void modifyFloatView() {
@@ -399,25 +391,11 @@ public class PanelTouchHelper {
 
         protected int[] getLocation(View coverView) {
             int[] result = new int[2];
-            int[] parentLocation = new int[2];
-            parentRecycler.getLocationInWindow(parentLocation);
-            int[] location = new int[2];
-            coverView.getLocationInWindow(location);
-            result[0] = location[0] - parentLocation[0];//窗口位置的偏移量
-            result[1] = location[1] - parentLocation[1] + titleHeight;
+            coverView.getLocationOnScreen(result);
+
             return result;
         }
 
-        protected int getTitleHeight() {
-            // 获取状态栏高度。不能在onCreate回调方法中获取
-            Rect frame = new Rect();
-            window.getDecorView().getWindowVisibleDisplayFrame(frame);
-            int statusBarHeight = frame.top;
-
-            int contentTop = window.findViewById(Window.ID_ANDROID_CONTENT).getTop();
-            titleHeight = contentTop - statusBarHeight;
-            return titleHeight;
-        }
 
         private WindowManager.LayoutParams initParams(View floatView) {
             WindowManager.LayoutParams mParams = new WindowManager.LayoutParams();
@@ -425,8 +403,8 @@ public class PanelTouchHelper {
             mParams.type = WindowManager.LayoutParams.TYPE_APPLICATION;// 系统提示window
             mParams.format = PixelFormat.TRANSLUCENT;// 支持透明
             //mParams.format = PixelFormat.RGBA_8888;
-            mParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;// 焦点
-            mParams.gravity = Gravity.START | Gravity.TOP;
+            mParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+            mParams.gravity = Gravity.LEFT | Gravity.TOP;
             return mParams;
         }
 
@@ -439,7 +417,7 @@ public class PanelTouchHelper {
         public void updateView(int x, int y) {
             if (currTouchedView != null) {
                 mParams.x = x - offsetX;
-                mParams.y = y - offsetY + titleHeight;
+                mParams.y = y - offsetY;
                 wManager.updateViewLayout(currTouchedView, mParams);
             }
         }
@@ -514,36 +492,4 @@ public class PanelTouchHelper {
          */
         public abstract void onDragStart();
     }
-
-    /**
-     * The pointer we are tracking.
-     */
-    int mActivePointerId = -1;
-    /**
-     * Used to detect long press.
-     */
-    private GestureDetectorCompat mGestureDetector;
-
-    private final RecyclerView.OnItemTouchListener mOnItemTouchListener
-            = new RecyclerView.OnItemTouchListener() {
-        @Override
-        public boolean onInterceptTouchEvent(RecyclerView recyclerView, MotionEvent event) {
-            mGestureDetector.onTouchEvent(event);
-            onTouch(event, event.getX(), event.getY());
-            return currItemView != null;
-        }
-
-        @Override
-        public void onTouchEvent(RecyclerView recyclerView, MotionEvent event) {
-            mGestureDetector.onTouchEvent(event);
-        }
-
-        @Override
-        public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-            if (!disallowIntercept) {
-                return;
-            }
-            stopDrag();
-        }
-    };
 }

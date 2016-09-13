@@ -54,7 +54,6 @@ public class DragLayout extends RelativeLayout {
                 mDragHelper.drop();
                 break;
         }
-        mph.onTouch(event, event.getX(), event.getY());
         return super.onTouchEvent(event);
     }
 }
