@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,14 +30,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new GridLayoutManager(this,2));
         BaseItemAdapter adapter = new BaseItemAdapter(this);
+        adapter.addHeadItem(new ItemHeadFoot());
+        adapter.addFootItem(new ItemHeadFoot());
         adapter.addDataItem(new ItemText(), new ItemText(), new ItemText());
         recyclerView.setAdapter(adapter);
 
 //        startActivity(new Intent(this, free.com.itemlib.MainActivity.class));
-
-
 
 
     }
@@ -53,20 +56,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    class ItemHeadFoot extends ItemBase {
+
+        @Override
+        public View initItemView(Context context, ViewGroup viewGroup) {
+            View view = LayoutInflater.from(context).inflate(R.layout.item_text, viewGroup, false);
+            return view;
+        }
+
+        @Override
+        public void fillData(View itemView) {
+            ((TextView) getView(itemView, R.id.textView)).setText("headfootView");
+        }
+    }
+
     class ItemText extends ItemBase {
 
         @Override
         public View initItemView(Context context, ViewGroup viewGroup) {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_text, viewGroup,false);
+            View view = LayoutInflater.from(context).inflate(R.layout.item_text, viewGroup, false);
             return view;
         }
 
         @Override
         public void fillData(View itemView) {
             ((TextView) getView(itemView, R.id.textView)).setText("asfada" +
-                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas"+
-                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas"+
-                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas"+
+                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas" +
+                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas" +
+                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas" +
                     "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas");
         }
     }
