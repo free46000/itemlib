@@ -3,50 +3,45 @@ package free.com.itemlib;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
-import android.os.Handler;
-import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Interpolator;
 
 /**
  * Created by free46000 on 2016/8/19.
+ * 面板拖动辅助类 -跨RecyclerView拖动
+ * <p>
+ * todo 通过#OnDragListener的切换回调boolean值处理是否可以替换的场景（有的Item是不允许被拖动的）
  */
 public class PanelTouchHelper {
-    public static final float SCROLL_BASE_STEP = 0.5F;
-    public static final int SCROLL_MAX_SPEED = 30;
-    public static final int NONE = -1;
+    private static final float SCROLL_BASE_STEP = 0.5F;
+    private static final int SCROLL_MAX_SPEED = 30;
+    private static final int NONE = -1;
+    private static final int MOVE_LIMIT = 2;
 
     private long mDragScrollStartTimeInMs;
 
-    private Window window;
     private View currItemView;
     private RecyclerView.ViewHolder currViewHolder;
-    private RecyclerView parentRecycler;
+    private RecyclerView horizontalRecycler;
     private OnDragListener onDragListener;
     private DragFloatViewHelper floatViewHelper;
 
     private int lastParentPos = NONE;
     private int lastChildPos = NONE;
 
-    private float initTouchX, initTouchY;
-    private float lastTouchX, lastTouchY;
+    private float lastTouchRawX, lastTouchRawY;
     private int offsetX, offsetY;
     private RecyclerView lastRecyclerView;
 
-    public PanelTouchHelper(final Activity activity, RecyclerView parentRecycler) {
-        this.parentRecycler = parentRecycler;
+    public PanelTouchHelper(final Activity activity, RecyclerView horizontalRecycler) {
+        this.horizontalRecycler = horizontalRecycler;
         floatViewHelper = new DragFloatViewHelper();
-        window = activity.getWindow();
-//        parentRecycler.addOnItemTouchListener(mOnItemTouchListener);
-
     }
 
     /**
@@ -60,6 +55,9 @@ public class PanelTouchHelper {
         this.currViewHolder = viewHolder;
         onDragListener.onDragStart();
         floatViewHelper.createView(floatView, currItemView);
+        lastParentPos = NONE;
+        lastChildPos = viewHolder.getAdapterPosition();
+        onDragListener.onItemSelected(currItemView, lastChildPos);
     }
 
 
@@ -79,20 +77,15 @@ public class PanelTouchHelper {
      * @return true表示消耗掉事件
      */
     public boolean onTouch(MotionEvent event) {
-        lastTouchX = event.getRawX();
-        lastTouchY = event.getRawY();
-
-        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            lastChildPos = NONE;
-            lastParentPos = NONE;
-            initTouchX = lastTouchX;
-            initTouchY = lastTouchY;
-        }
+        lastTouchRawX = event.getRawX();
+        lastTouchRawY = event.getRawY();
 
         if (currItemView != null) {
-            floatViewHelper.updateView((int) lastTouchX, (int) lastTouchY);
-            moveIfNecessary(lastTouchX, lastTouchY);
+            floatViewHelper.updateView((int) lastTouchRawX, (int) lastTouchRawY);
+
+            boolean isCanMove = moveIfNecessary(lastTouchRawX, lastTouchRawY);
             if (lastRecyclerView != null) {
+
                 lastRecyclerView.removeCallbacks(mScrollRunnable);
                 mScrollRunnable.run();
                 lastRecyclerView.invalidate();
@@ -107,6 +100,10 @@ public class PanelTouchHelper {
         return false;
     }
 
+    private boolean isInScope() {
+        return true;
+    }
+
     private void stopDrag() {
         if (currItemView != null) {
             onDragListener.onDragFinish(lastChildPos);
@@ -118,61 +115,109 @@ public class PanelTouchHelper {
         currViewHolder = null;
     }
 
-    // TODO: 2016/9/3 0003 offset 在当target的RecyclerView没有数据时无法切换
-    private boolean moveIfNecessary(float touchX, float touchY) {
-        View view = parentRecycler.findChildViewUnder(touchX, touchY);
-        int parentPos = getPositionByItemView(view);
-        RecyclerView verticalRecycler = null;
-        if (parentPos != NONE) {
-            verticalRecycler = findRecyclerView(view);
+    /**
+     * 当用户拖动的时候，计算是否需要移动Item
+     *
+     * @param touchRawX float event.getRawX()
+     * @param touchRawY float event.getRawY()
+     */
+    private boolean moveIfNecessary(float touchRawX, float touchRawY) {
+        boolean result = true;
+
+        float[] location = getRecyclerViewInsideLocation(horizontalRecycler, touchRawX, touchRawY);
+
+        View view = horizontalRecycler.findChildViewUnder(location[0], location[1]);
+        int verticalPos = getPositionByItemView(view);
+        System.out.println("find_parent_out:" + lastParentPos + "-" + verticalPos + "==" + location[0] + "====" + location[1]);
+
+        RecyclerView verticalRecycler = findRecyclerView(view);
+        if (verticalPos == NONE || verticalRecycler == null) {
+            return false;
         }
-        if (verticalRecycler != null) {
-            int[] location = new int[2];
-            verticalRecycler.getLocationOnScreen(location);
 
-            float childX = touchX - location[0];
-            float childY = touchY - location[1];
-            View itemView = verticalRecycler.findChildViewUnder(childX, childY);
+        location = getRecyclerViewInsideLocation(verticalRecycler, touchRawX, touchRawY);
+        float childX = location[0];
+        float childY = location[1];
+        System.out.println("find_parent_out:" + lastParentPos + "-" + verticalPos + "==" + "childX:" + childX + "childY:" + childY);
 
-            int childPos = getPositionByItemView(itemView);
-            System.out.println("find_parent_out:" + lastParentPos + "-" + parentPos + "==" + "childX:" + childX + "childY:" + childY);
-            if (isSelectedRecyclerView(lastParentPos, parentPos)) {
-                lastParentPos = parentPos;
-                onDragListener.onRecyclerSelected(verticalRecycler, parentPos);
-                lastRecyclerView = verticalRecycler;
-            } else if (isRealChangeRecyclerView(lastParentPos, parentPos, childPos)) {
-                onDragListener.onRecyclerChanged(lastRecyclerView,
-                        verticalRecycler, lastChildPos, childPos);
-                System.out.println("find_parent:" + lastParentPos + "-" + parentPos);
-                //因为切换父控件，所以需要重置为NONE，不然上个的最后位置有可能超过当前的大小抛出错误
-                lastChildPos = NONE;
-                //在切换recycle view并且触摸到子recycle view的item的时候才真正去改变值
-                lastParentPos = parentPos;
-                lastRecyclerView = verticalRecycler;
+        View itemTargetView = verticalRecycler.findChildViewUnder(childX, childY);
+        int childPos = getTargetChildPos(itemTargetView, childY, lastParentPos, verticalPos);
+
+        if (isSelectedRecyclerView(lastParentPos, verticalPos)) {
+            onDragListener.onRecyclerSelected(verticalRecycler, verticalPos);
+            lastParentPos = verticalPos;
+            lastRecyclerView = verticalRecycler;
+        } else if (isChangeRecyclerView(lastParentPos, verticalPos)) {
+            if (childPos == NONE) {
+                childPos = calcChildPositionOnChangedRecyclerView(verticalRecycler, childX, childY);
             }
-
             if (childPos != NONE) {
-                if (isSelectedChildView(lastChildPos, childPos)) {
-                    currItemView = itemView;
-                    lastChildPos = childPos;
-                    onDragListener.onItemSelected(itemView, childPos);
-                }
-
-                int targetPos = getTargetChildPos(currItemView, verticalRecycler, childX, childY);
-                if (isNeedMove(currItemView, lastChildPos, targetPos, childY)) {
-                    onDragListener.onItemChanged(verticalRecycler, lastChildPos, targetPos);
-                    if (lastChildPos == 0 || targetPos == 0) {
-                        verticalRecycler.scrollToPosition(0);
-                    }
-                    System.out.println("find:" + lastParentPos + "-" + parentPos + "======" + lastChildPos + "-" + targetPos);
-                    lastChildPos = targetPos;
-                }
+                onDragListener.onRecyclerChanged(lastRecyclerView, verticalRecycler, lastChildPos, childPos);
+                System.out.println("find_parent:" + lastParentPos + "-" + verticalPos);
+                //在切换recycle view并且触摸到子recycle view的item的时候才真正去改变值
+                lastParentPos = verticalPos;
+                lastRecyclerView = verticalRecycler;
+                //因为切换父控件，所以需要重置为当前ChildPos，不然上个的最后位置有可能超过当前的大小抛出错误
+                lastChildPos = childPos;
             }
         }
-        return true;
+
+        if (childPos == NONE) {
+            return result;
+        }
+
+        if (isNeedMove(itemTargetView, lastChildPos, childPos, childY)) {
+            onDragListener.onItemChanged(verticalRecycler, lastChildPos, childPos);
+            final RecyclerView.LayoutManager layoutManager = verticalRecycler.getLayoutManager();
+            if (layoutManager instanceof ItemTouchHelper.ViewDropHandler) {
+                ((ItemTouchHelper.ViewDropHandler) layoutManager).prepareForDrop(itemTargetView,
+                        itemTargetView, (int) childX, (int) childY);
+            }
+
+            System.out.println("find:" + lastParentPos + "-" + verticalPos + "======" + lastChildPos + "-" + childPos);
+            lastChildPos = childPos;
+        }
+        return result;
     }
 
+    /**
+     * 获取当前点击的位置在RecyclerView内部的坐标 Y坐标范围0+padding到height-padding
+     */
+    private float[] getRecyclerViewInsideLocation(RecyclerView verticalRecycler, float touchRawX, float touchRawY) {
+        float[] result = new float[2];
+        int[] location = new int[2];
+        verticalRecycler.getLocationOnScreen(location);
+        result[0] = touchRawX - location[0];
+        result[1] = touchRawY - location[1];
+        System.out.println("getRecyclerViewInsideLocation:" + result[0] + "-" + result[1] + "==" + "X:" + touchRawX + "Y:" + touchRawY);
+
+        int minX = verticalRecycler.getPaddingTop();
+        int maxY = verticalRecycler.getHeight() - verticalRecycler.getPaddingBottom();
+        result[1] = result[1] < minX ? minX : result[1];
+        result[1] = result[1] > maxY ? maxY : result[1];
+        return result;
+    }
+
+    /**
+     * 当在两个RecyclerView中切换时，计算目标RecyclerView中Child位置 (若目标RecyclerView为空返回0)
+     */
+    private int calcChildPositionOnChangedRecyclerView(RecyclerView verticalRecycler, float childX, float childY) {
+        if (verticalRecycler.getAdapter().getItemCount() == 0) {
+            return 0;
+        }
+        return NONE;
+    }
+
+    /**
+     * 从view中获取需要操作的RecyclerView
+     *
+     * @param view View
+     */
     protected RecyclerView findRecyclerView(View view) {
+        if (view == null) {
+            return null;
+        }
+
         if (view instanceof RecyclerView) {
             return (RecyclerView) view;
         } else if (view instanceof ViewGroup) {
@@ -187,19 +232,19 @@ public class PanelTouchHelper {
 
 
     /**
-     * When user drags a view to the edge, we start scrolling the LayoutManager as long as View
-     * is partially out of bounds.
+     * 滚动Runnable，为了可持续滚动
      */
     private final Runnable mScrollRunnable = new Runnable() {
 
-
         @Override
         public void run() {
-            boolean isParentScroll = scrollIfNecessary(parentRecycler, (int) lastTouchX, (int) lastTouchY);
-            boolean isChildScroll = scrollIfNecessary(lastRecyclerView, (int) lastTouchX, (int) lastTouchY);
-            if (currItemView != null && (isParentScroll || isChildScroll)) {
+            float[] horLocation = getRecyclerViewInsideLocation(horizontalRecycler, lastTouchRawX, lastTouchRawY);
+            float[] verLocation = getRecyclerViewInsideLocation(lastRecyclerView, lastTouchRawX, lastTouchRawY);
+            boolean isHorizontalScroll = scrollIfNecessary(horizontalRecycler, (int) horLocation[0], (int) horLocation[1]);
+            boolean isVerticalScroll = scrollIfNecessary(lastRecyclerView, (int) verLocation[0], (int) verLocation[1]);
+            if (currItemView != null && (isHorizontalScroll || isVerticalScroll)) {
                 //it might be lost during scrolling
-                moveIfNecessary(lastTouchX, lastTouchY);
+                moveIfNecessary(lastTouchRawX, lastTouchRawY);
                 lastRecyclerView.removeCallbacks(mScrollRunnable);
                 ViewCompat.postOnAnimation(lastRecyclerView, this);
             }
@@ -207,9 +252,8 @@ public class PanelTouchHelper {
     };
 
     /**
-     * If user drags the view to the edge, trigger a scroll if necessary.
+     * 当用户滚动到边缘的时候,计算是否需要滚动
      */
-    // TODO: 2016/9/3 0003 scroll逻辑不对，当RecyclerView的top bottom有距离时必须滑动出RecyclerView才能滑动
     private boolean scrollIfNecessary(RecyclerView recyclerView, int curX, int curY) {
         if (currItemView == null) {
             mDragScrollStartTimeInMs = Long.MIN_VALUE;
@@ -265,18 +309,17 @@ public class PanelTouchHelper {
      *
      * @return NONE为找不到
      */
-    private int getTargetChildPos(View selectedView, RecyclerView recyclerView, float touchX,
-                                  float touchY) {
+    private int getTargetChildPos(View itemTargetView, float childY, int lastHorizontalPos, int currHorizontalPos) {
+        int childPos = getPositionByItemView(itemTargetView);
 
-        View itemView = recyclerView.findChildViewUnder(touchX, touchY);
-        int childPos = getPositionByItemView(itemView);
-        if (childPos != NONE && childPos != lastChildPos && isCurrPosition(touchY, itemView)) {
-            return childPos;
-        }
-        float bottomY = touchY + selectedView.getHeight();
-        itemView = recyclerView.findChildViewUnder(touchX, bottomY);
-        childPos = getPositionByItemView(itemView);
-        if (childPos != NONE && childPos != lastChildPos && isCurrPosition(touchY, itemView)) {
+//        if (childPos != NONE) {
+//            if (itemTargetView.getTop() < 0) {
+//                childPos++;
+//            }
+//        }
+
+        if (childPos != NONE && (childPos != lastChildPos || lastHorizontalPos != currHorizontalPos)
+                && isCurrPosition(childY, itemTargetView)) {
             return childPos;
         }
         return NONE;
@@ -286,25 +329,30 @@ public class PanelTouchHelper {
     /**
      * 两个Item是否需要move
      */
-    private boolean isNeedMove(View selectedView, int lastChildPos, int targetPos, float touchY) {
-        if (selectedView == null || lastChildPos == NONE || targetPos == NONE) {
+    private boolean isNeedMove(View itemTargetView, int lastChildPos, int targetPos, float touchY) {
+        if (itemTargetView == null || lastChildPos == NONE || targetPos == NONE || lastChildPos == targetPos) {
             return false;
         }
-        System.out.println("isNeedRemove-top:" + selectedView.getTop() + "======height:" + selectedView.getHeight() + "======touchY:" + touchY);
-        int top = selectedView.getTop() < 0 || selectedView.getTop() > 1500 ? 0 : selectedView.getTop();
-        return Math.abs(touchY - top) > (selectedView.getHeight() / 2);
+        int top = itemTargetView.getTop();
+
+        int moveLimit = top + itemTargetView.getHeight() / MOVE_LIMIT;
+        System.out.println("isNeedRemove-top:" + top + "======height:" + itemTargetView.getHeight()
+                + "======touchY:" + touchY + "moveLimit====" + moveLimit);
+
+        if (lastChildPos > targetPos) {
+//            return touchY < moveLimit && top >= 0;
+            return touchY < moveLimit;
+        } else {
+            return touchY > moveLimit;
+        }
     }
 
     /**
      * touch的位置是否为当前view，防止两个item切换时的抖动问题
      */
     private boolean isCurrPosition(float childY, View itemView) {
-        if (childY > itemView.getTop() && childY < itemView.getBottom()) {
-            return true;
-        }
         System.out.println("isCurrPosition:" + (childY > itemView.getTop() && childY < itemView.getBottom()));
-
-        return false;
+        return childY > itemView.getTop() && childY < itemView.getBottom();
     }
 
 
@@ -330,9 +378,8 @@ public class PanelTouchHelper {
      * 是否真正切换了RecyclerView
      * 需要注意这里把没有切换后没有touch到Item当成不是真正切换
      */
-    private boolean isRealChangeRecyclerView(int lastParentPos, int currParentPos,
-                                             int currChildPos) {
-        return lastParentPos != currParentPos && currChildPos != NONE && lastParentPos != NONE && currParentPos != NONE;
+    private boolean isChangeRecyclerView(int lastParentPos, int currParentPos) {
+        return lastParentPos != currParentPos && lastParentPos != NONE && currParentPos != NONE;
     }
 
     /**
@@ -375,11 +422,8 @@ public class PanelTouchHelper {
             modifyFloatView();
             wManager.addView(floatView, mParams);
 
-
-            System.out.println(offsetX + "offsetXoffsetXoffsetXoffsetX111111" + offsetY + "==" + location[0] + location[1]);
-            offsetX = (int) (lastTouchX - location[0]);
-            offsetY = (int) (lastTouchY - location[1]);
-            System.out.println(offsetX + "offsetXoffsetXoffsetXoffsetX222222" + offsetY);
+            offsetX = (int) (lastTouchRawX - location[0]);
+            offsetY = (int) (lastTouchRawY - location[1]);
         }
 
         protected void modifyFloatView() {
@@ -452,7 +496,7 @@ public class PanelTouchHelper {
          * @param selectedView 选中的RecyclerView
          * @param selectedPos  选中的位置
          */
-        public abstract void onRecyclerSelected(RecyclerView selectedView, int selectedPos);
+        public abstract boolean onRecyclerSelected(RecyclerView selectedView, int selectedPos);
 
         /**
          * 触摸时切换RecyclerView的时候回调
@@ -462,7 +506,7 @@ public class PanelTouchHelper {
          * @param itemFromPos 上个item选中的位置
          * @param itemToPos   当前item选中的位置
          */
-        public abstract void onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos);
+        public abstract boolean onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos);
 
         /**
          * 第一次被选中的时候回调
@@ -470,7 +514,7 @@ public class PanelTouchHelper {
          * @param selectedView 选中的RecyclerView
          * @param selectedPos  选中的位置
          */
-        public abstract void onItemSelected(View selectedView, int selectedPos);
+        public abstract boolean onItemSelected(View selectedView, int selectedPos);
 
         /**
          * 触摸时切换Item的时候回调
@@ -479,7 +523,7 @@ public class PanelTouchHelper {
          * @param fromPos      上个选中的位置
          * @param toPos        当前选中的位置
          */
-        public abstract void onItemChanged(RecyclerView recyclerView, int fromPos, int toPos);
+        public abstract boolean onItemChanged(RecyclerView recyclerView, int fromPos, int toPos);
 
         /**
          * 拖拽结束时回调

@@ -228,7 +228,6 @@ public class MainActivity extends Activity {
             @Override
             public void setData(ItemText itemContent) {
                 textView.setText(itemContent.getValue());
-                textView.setHeight(100);
                 itemView.setVisibility(currItem.getGravity());
                 if (isFullSpan()) {
 //                    itemView.setBackgroundColor(0xFFDD66CC);

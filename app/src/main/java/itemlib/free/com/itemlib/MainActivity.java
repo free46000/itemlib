@@ -34,8 +34,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, free.com.itemlib.MainActivity.class));
 
 
-
-
     }
 
     class DisplayItem extends ItemImpl {
@@ -55,16 +53,16 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public View initItemView(Context context, ViewGroup viewGroup) {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_text, viewGroup,false);
+            View view = LayoutInflater.from(context).inflate(R.layout.item_text, viewGroup, false);
             return view;
         }
 
         @Override
-        public void fillData(View itemView) {
-            ((TextView) getView(itemView, R.id.textView)).setText("asfada" +
-                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas"+
-                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas"+
-                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas"+
+        public void fillData(ItemViewHolder itemView) {
+            ((TextView) getView(itemView.getItemView(), R.id.textView)).setText("asfada" +
+                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas" +
+                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas" +
+                    "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas" +
                     "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas");
         }
     }

@@ -42,7 +42,7 @@ public class RecyclerActivity extends Activity {
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
-        baseItemAdapter.addDataItem(new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
+        baseItemAdapter.addDataItem(new ItemRecycler(25), new ItemRecycler(1), new ItemRecycler(25), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setAdapter(baseItemAdapter);
         baseItemAdapter.notifyDataSetChanged();
@@ -71,26 +71,29 @@ public class RecyclerActivity extends Activity {
             this.currItem = currItem;
         }
 
-        public void onRecyclerSelected(RecyclerView recyclerView, int selectedPos) {
+        public boolean onRecyclerSelected(RecyclerView recyclerView, int selectedPos) {
             lastRecyclerView = recyclerView;
+            return true;
         }
 
-        public void onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos) {
+        public boolean onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos) {
             BaseItemAdapter adapter = (BaseItemAdapter) fromView.getAdapter();
             adapter.removeDataItem(itemFromPos);
             adapter = (BaseItemAdapter) toView.getAdapter();
             adapter.addDataItem(itemToPos, currItem);
 
             lastRecyclerView = toView;
-
+            return true;
         }
 
-        public void onItemSelected(View selectedView, int selectedPos) {
+        public boolean onItemSelected(View selectedView, int selectedPos) {
+            return true;
         }
 
-        public void onItemChanged(RecyclerView recyclerView, int fromPos, int toPos) {
+        public boolean onItemChanged(RecyclerView recyclerView, int fromPos, int toPos) {
             BaseItemAdapter adapter = (BaseItemAdapter) recyclerView.getAdapter();
             adapter.moveDataItem(fromPos, toPos);
+            return true;
         }
 
         public void onDragFinish(int itemPos) {
@@ -122,7 +125,7 @@ public class RecyclerActivity extends Activity {
 
         @Override
         public String getItemViewType() {
-            return length + "";
+            return length + "" + this.toString();
         }
 
         public ItemRecycler(int length) {
@@ -131,6 +134,7 @@ public class RecyclerActivity extends Activity {
 
         public ItemRecycler() {
         }
+
 
         @Override
         public View initItemView(Context context, final ViewGroup viewGroup) {
@@ -173,15 +177,18 @@ public class RecyclerActivity extends Activity {
         }
 
         @Override
-        public void fillData(View itemView) {
+        public void fillData(ItemViewHolder itemView) {
             // TODO: 2016/9/13 filllData 接口用holder
             // TODO: 2016/9/13 打印是不是复用了
-            System.out.println("" + itemView);
+            System.out.println("" + itemView + "=================" + itemView.getItemView());
         }
 
         private List<Item> getItemList(int length) {
             List<Item> list = new ArrayList<>();
             for (int i = 0; i < length; i++) {
+                if (i==1){
+                    list.add(new MainActivity.ItemText(i + "fsadfsa\nfdsafdsa\nfdsafdsa\nfdsafdasfd\nsafdsa\nfdsfdasf" + i));
+                }
                 list.add(new MainActivity.ItemText(i + "fsadfsafdsafdsafdsafdsa\nfdsafdasfdsafdsafdsfdasf" + i));
             }
             return list;
