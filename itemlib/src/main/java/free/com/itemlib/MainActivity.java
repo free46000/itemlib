@@ -220,7 +220,7 @@ public class MainActivity extends Activity {
 
             @Override
             protected View initItemView() {
-                View view = LayoutInflater.from(context).inflate(R.layout.item_text, parentViewGroup, false);
+                View view = LayoutInflater.from(context).inflate(R.layout.item_panel_text, parentViewGroup, false);
                 textView = (TextView) view.findViewById(R.id.text);
                 return view;
             }
@@ -228,7 +228,6 @@ public class MainActivity extends Activity {
             @Override
             public void setData(ItemText itemContent) {
                 textView.setText(itemContent.getValue());
-                textView.setHeight(100);
                 itemView.setVisibility(currItem.getGravity());
                 if (isFullSpan()) {
 //                    itemView.setBackgroundColor(0xFFDD66CC);

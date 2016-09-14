@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +42,7 @@ public class RecyclerActivity extends Activity {
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
-        baseItemAdapter.addDataItem(new ItemRecycler(), new ItemRecycler(1), new ItemRecycler());
+        baseItemAdapter.addDataItem(new ItemRecycler(25), new ItemRecycler(1), new ItemRecycler(25), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setAdapter(baseItemAdapter);
         baseItemAdapter.notifyDataSetChanged();
@@ -56,7 +57,7 @@ public class RecyclerActivity extends Activity {
         int contentTop = getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
         lastTouchX = ev.getX();
         lastTouchY = ev.getY() - contentTop;
-        if (touchHelper.onTouch(ev, lastTouchX, lastTouchY)) {
+        if (touchHelper.onTouch(ev)) {
             return true;
         }
         return super.dispatchTouchEvent(ev);
@@ -70,31 +71,35 @@ public class RecyclerActivity extends Activity {
             this.currItem = currItem;
         }
 
-        public void onRecyclerSelected(RecyclerView recyclerView, int selectedPos) {
+        public boolean onRecyclerSelected(RecyclerView recyclerView, int selectedPos) {
             lastRecyclerView = recyclerView;
+            return true;
         }
 
-        public void onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos) {
+        public boolean onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos) {
             BaseItemAdapter adapter = (BaseItemAdapter) fromView.getAdapter();
             adapter.removeDataItem(itemFromPos);
             adapter = (BaseItemAdapter) toView.getAdapter();
             adapter.addDataItem(itemToPos, currItem);
 
             lastRecyclerView = toView;
-
+            return true;
         }
 
-        public void onItemSelected(View selectedView, int selectedPos) {
+        public boolean onItemSelected(View selectedView, int selectedPos) {
+            return true;
         }
 
-        public void onItemChanged(RecyclerView recyclerView, int fromPos, int toPos) {
+        public boolean onItemChanged(RecyclerView recyclerView, int fromPos, int toPos) {
             BaseItemAdapter adapter = (BaseItemAdapter) recyclerView.getAdapter();
             adapter.moveDataItem(fromPos, toPos);
+            return true;
         }
 
         public void onDragFinish(int itemPos) {
             ((MainActivity.ItemText) currItem).setGravity(View.VISIBLE);
-            lastRecyclerView.getAdapter().notifyDataSetChanged();
+            if (lastRecyclerView != null)
+                lastRecyclerView.getAdapter().notifyDataSetChanged();
 //            for (int i = 0; i < parentRecycler.getChildCount(); i++) {
 //                View childView = parentRecycler.getChildAt(i);
 //                if (childView instanceof RecyclerView) {
@@ -120,24 +125,28 @@ public class RecyclerActivity extends Activity {
 
         @Override
         public String getItemViewType() {
-            return length+"";
+            return length + "" + this.toString();
         }
 
         public ItemRecycler(int length) {
             this.length = length;
         }
+
         public ItemRecycler() {
         }
 
+
         @Override
         public View initItemView(Context context, final ViewGroup viewGroup) {
-            final RecyclerView recyclerView = new RecyclerView(context);
+            View view = LayoutInflater.from(context).inflate(R.layout.item_recycler_group, viewGroup, false);
+
+
+            final RecyclerView recyclerView = getView(view, R.id.item_group_recycler);
             recyclerView.setClipToPadding(false);
-            recyclerView.setMinimumWidth(400);
 
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             final BaseItemAdapter baseItemAdapter = new BaseItemAdapter(context);
-                baseItemAdapter.addDataItemList(getItemList(length));
+            baseItemAdapter.addDataItemList(getItemList(length));
             recyclerView.setAdapter(baseItemAdapter);
 
             baseItemAdapter.setOnItemLongClickListener(new OnItemLongClickListener() {
@@ -150,11 +159,11 @@ public class RecyclerActivity extends Activity {
                 public void onItemLongClick(Item item, ItemViewHolder itemViewHolder, int location, int columnLoc) {
                     View floatView = item.newItemView2Show(RecyclerActivity.this, null);
                     View itemView = itemViewHolder.getItemView();
+                    int[] locArr = new int[2];
+                    itemView.getLocationOnScreen(locArr);
                     // TODO: 2016/9/3 0003 offset 在PanelTouchHelper中计算
-                    int offsetX = (int) (lastTouchX - recyclerView.getX() - itemView.getX());
-                    int offsetY = (int) (lastTouchY - recyclerView.getY() - itemView.getY());
                     touchHelper.setOnDragListener(new OnBaseDragListener(item));
-                    touchHelper.startDrag(recyclerView.getChildViewHolder(itemView), floatView, offsetX, offsetY);
+                    touchHelper.startDrag(recyclerView.getChildViewHolder(itemView), floatView);
                     if (item instanceof MainActivity.ItemText) {
                         ((MainActivity.ItemText) item).setGravity(View.INVISIBLE);
                         itemViewHolder.refreshView();
@@ -164,17 +173,22 @@ public class RecyclerActivity extends Activity {
 
             });
 
-            return recyclerView;
+            return view;
         }
 
         @Override
-        public void fillData(View itemView) {
-
+        public void fillData(ItemViewHolder itemView) {
+            // TODO: 2016/9/13 filllData 接口用holder
+            // TODO: 2016/9/13 打印是不是复用了
+            System.out.println("" + itemView + "=================" + itemView.getItemView());
         }
 
         private List<Item> getItemList(int length) {
             List<Item> list = new ArrayList<>();
             for (int i = 0; i < length; i++) {
+                if (i==1){
+                    list.add(new MainActivity.ItemText(i + "fsadfsa\nfdsafdsa\nfdsafdsa\nfdsafdasfd\nsafdsa\nfdsfdasf" + i));
+                }
                 list.add(new MainActivity.ItemText(i + "fsadfsafdsafdsafdsafdsa\nfdsafdasfdsafdsafdsfdasf" + i));
             }
             return list;

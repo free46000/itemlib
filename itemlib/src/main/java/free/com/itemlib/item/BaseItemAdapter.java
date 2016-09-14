@@ -122,10 +122,12 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
             for (int i = fromDataPos; i > toDatePos; i--) {
                 Collections.swap(dataItemList, i, i - 1);
             }
+//            notifyItemMoved(toPosition, fromPosition);
         } else {
             for (int i = fromDataPos; i < toDatePos; i++) {
                 Collections.swap(dataItemList, i, i + 1);
             }
+//            notifyItemMoved(fromPosition, toPosition);
         }
         notifyItemMoved(fromPosition, toPosition);
         //这种方式在隔position的时候会顺序混乱

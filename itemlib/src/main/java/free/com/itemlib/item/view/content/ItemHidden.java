@@ -4,6 +4,8 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
+import free.com.itemlib.item.view.ItemViewHolder;
+
 /**
  * Created by free46000 on 2015/6/16 0016.
  */
@@ -26,7 +28,7 @@ public class ItemHidden extends ItemInput {
     }
 
     @Override
-    public void fillData(View itemView) {
+    public void fillData(ItemViewHolder itemViewHolder) {
 
     }
 

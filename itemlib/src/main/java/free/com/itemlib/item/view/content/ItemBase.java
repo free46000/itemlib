@@ -19,7 +19,7 @@ public abstract class ItemBase extends ItemImpl {
 
     public abstract View initItemView(Context context, ViewGroup viewGroup);
 
-    public abstract void fillData(View itemView);
+    public abstract void fillData(ItemViewHolder itemViewHolder);
 
     protected <T extends View> T getView(View view, int id) {
         return (T) view.findViewById(id);

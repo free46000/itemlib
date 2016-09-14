@@ -23,6 +23,6 @@ public class ItemBaseView<T extends ItemBase> extends ItemViewHolder<T> {
 
     @Override
     public void setData(T itemBase) {
-        itemBase.fillData(itemView);
+        itemBase.fillData(this);
     }
 }
