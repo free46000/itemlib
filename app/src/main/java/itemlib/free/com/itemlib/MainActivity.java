@@ -15,8 +15,6 @@ import free.com.itemlib.item.BaseItemAdapter;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.ItemBase;
 import free.com.itemlib.item.view.content.ItemImpl;
-import free.com.itemlib.item.view.content.ItemInput;
-import free.com.itemlib.item.view.content.ItemSimple;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.addDataItem(new ItemText(), new ItemText(), new ItemText());
         recyclerView.setAdapter(adapter);
 
-//        startActivity(new Intent(this, free.com.itemlib.MainActivity.class));
+        startActivity(new Intent(this, free.com.itemlib.MainActivity.class));
 
 
 
