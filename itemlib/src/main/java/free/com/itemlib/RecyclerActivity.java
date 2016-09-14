@@ -175,7 +175,7 @@ public class RecyclerActivity extends Activity {
         @Override
         public void fillData(View itemView) {
             // TODO: 2016/9/13 filllData 接口用holder
-            // TODO: 2016/9/13 打印是不是复用了 
+            // TODO: 2016/9/13 打印是不是复用了
             System.out.println("" + itemView);
         }
 
