@@ -356,7 +356,6 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
             params.setFullSpan(true);
         } else if(holder.itemView.getLayoutParams() instanceof GridLayoutManager.LayoutParams) {
             GridLayoutManager.LayoutParams params = (GridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
-            params.set
         }
     }
 
