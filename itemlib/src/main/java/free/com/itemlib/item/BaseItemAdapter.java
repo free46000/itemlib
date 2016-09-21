@@ -1,10 +1,8 @@
 package free.com.itemlib.item;
 
 import android.content.Context;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -88,7 +86,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
      * 设置Item最终调用方法
      */
     private void setData(List<? extends Item> itemList) {
-        clearDataExcludeHeadFoot();
+        clearParams();
         dataItemList = (List<Item>) itemList;
         shrinkViewUtil.initShrinkParams(dataItemList);
         notifyDataSetChanged();
@@ -246,21 +244,21 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
      * 清空adapter 不只是单纯清空数据源
      */
     public void clearData() {
+        dataItemList.clear();
         headItemList.clear();
         footItemList.clear();
         itemLoadMore = null;
-
-        clearDataExcludeHeadFoot();
+        //todo 如果clear后更新item的种类有可能会造成type和item对应混乱
+        //[ItemA ItemA] 这个时候ItemA是初始type=1 然后clear了 设置新的[ItemB ItemB]这样ItemB就是初始type=1 就会使用ItemA对应的ViewHolder
+        mTypeList.clear();
+        mTypeItemList.clear();
+        clearParams();
     }
 
     /**
      * 清空adapter除了Head和Foot 不只是单纯清空数据源
      */
-    public void clearDataExcludeHeadFoot() {
-        dataItemList.clear();
-        mTypeList.clear();
-        mTypeItemList.clear();
-
+    public void clearParams() {
         animationLoader.clear();
         shrinkViewUtil.clear();
     }

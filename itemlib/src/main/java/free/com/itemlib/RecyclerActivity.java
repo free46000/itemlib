@@ -27,7 +27,7 @@ public class RecyclerActivity extends Activity {
     public static final int NONE = -1;
 
 
-    private RecyclerView recyclerView;
+    private RecyclerView mRecyclerView;
     private BaseItemAdapter baseItemAdapter;
     private PanelTouchHelper touchHelper;
 
@@ -40,15 +40,15 @@ public class RecyclerActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler_muti);
 
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
         baseItemAdapter.addDataItem(new ItemRecycler(25), new ItemRecycler(1), new ItemRecycler(25), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        recyclerView.setAdapter(baseItemAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mRecyclerView.setAdapter(baseItemAdapter);
         baseItemAdapter.notifyDataSetChanged();
-        recyclerView.setClipToPadding(false);
+        mRecyclerView.setClipToPadding(false);
 
-        touchHelper = new PanelTouchHelper(this, recyclerView);
+        touchHelper = new PanelTouchHelper(mRecyclerView);
     }
 
 
@@ -65,24 +65,22 @@ public class RecyclerActivity extends Activity {
 
     class OnBaseDragListener extends PanelTouchHelper.OnDragListener {
         private Item currItem;
-        private RecyclerView lastRecyclerView;
 
         public OnBaseDragListener(Item currItem) {
             this.currItem = currItem;
         }
 
         public boolean onRecyclerSelected(RecyclerView recyclerView, int selectedPos) {
-            lastRecyclerView = recyclerView;
             return true;
         }
 
-        public boolean onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos) {
+        public boolean onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos,
+                                         int itemToPos, int i, int ii) {
             BaseItemAdapter adapter = (BaseItemAdapter) fromView.getAdapter();
             adapter.removeDataItem(itemFromPos);
             adapter = (BaseItemAdapter) toView.getAdapter();
             adapter.addDataItem(itemToPos, currItem);
 
-            lastRecyclerView = toView;
             return true;
         }
 
@@ -90,16 +88,16 @@ public class RecyclerActivity extends Activity {
             return true;
         }
 
-        public boolean onItemChanged(RecyclerView recyclerView, int fromPos, int toPos) {
+        public boolean onItemChanged(RecyclerView recyclerView, int fromPos, int toPos, int i) {
             BaseItemAdapter adapter = (BaseItemAdapter) recyclerView.getAdapter();
             adapter.moveDataItem(fromPos, toPos);
             return true;
         }
 
-        public void onDragFinish(int itemPos) {
+        public void onDragFinish(RecyclerView recyclerView, int itemPos, int itemHorizontalPos) {
             ((MainActivity.ItemText) currItem).setGravity(View.VISIBLE);
-            if (lastRecyclerView != null)
-                lastRecyclerView.getAdapter().notifyDataSetChanged();
+            if (recyclerView != null)
+                recyclerView.getAdapter().notifyDataSetChanged();
 //            for (int i = 0; i < parentRecycler.getChildCount(); i++) {
 //                View childView = parentRecycler.getChildAt(i);
 //                if (childView instanceof RecyclerView) {
@@ -142,7 +140,7 @@ public class RecyclerActivity extends Activity {
 
 
             final RecyclerView recyclerView = getView(view, R.id.item_group_recycler);
-            recyclerView.setClipToPadding(false);
+//            mRecyclerView.setClipToPadding(false);
 
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             final BaseItemAdapter baseItemAdapter = new BaseItemAdapter(context);
@@ -161,13 +159,17 @@ public class RecyclerActivity extends Activity {
                     View itemView = itemViewHolder.getItemView();
                     int[] locArr = new int[2];
                     itemView.getLocationOnScreen(locArr);
-                    // TODO: 2016/9/3 0003 offset 在PanelTouchHelper中计算
                     touchHelper.setOnDragListener(new OnBaseDragListener(item));
                     touchHelper.startDrag(recyclerView.getChildViewHolder(itemView), floatView);
                     if (item instanceof MainActivity.ItemText) {
                         ((MainActivity.ItemText) item).setGravity(View.INVISIBLE);
                         itemViewHolder.refreshView();
                     }
+
+                    mRecyclerView.setScaleX(0.5f);
+                    mRecyclerView.setScaleY(0.5f);
+//                    mRecyclerView.getLayoutParams().height = mRecyclerView.getLayoutParams().height * 2;
+
                 }
 
 
@@ -178,15 +180,13 @@ public class RecyclerActivity extends Activity {
 
         @Override
         public void fillData(ItemViewHolder itemView) {
-            // TODO: 2016/9/13 filllData 接口用holder
-            // TODO: 2016/9/13 打印是不是复用了
             System.out.println("" + itemView + "=================" + itemView.getItemView());
         }
 
         private List<Item> getItemList(int length) {
             List<Item> list = new ArrayList<>();
             for (int i = 0; i < length; i++) {
-                if (i==1){
+                if (i == 1) {
                     list.add(new MainActivity.ItemText(i + "fsadfsa\nfdsafdsa\nfdsafdsa\nfdsafdasfd\nsafdsa\nfdsfdasf" + i));
                 }
                 list.add(new MainActivity.ItemText(i + "fsadfsafdsafdsafdsafdsa\nfdsafdasfdsafdsafdsfdasf" + i));
