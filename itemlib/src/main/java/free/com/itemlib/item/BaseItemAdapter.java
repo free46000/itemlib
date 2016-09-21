@@ -152,10 +152,20 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         if (views == null || views.length == 0) {
             return;
         }
-        for (int i = 0; i < views.length; i++) {
-            ItemSimple simple = new ItemSimple(views[i]);
-            simple.setIsFullSpan(true);
-            headItemList.add(simple);
+        for (View view : views) {
+            addHeadItem(new ItemSimple(view));
+        }
+    }
+
+    /**
+     * 添加头Item，并且设置每个Item为full span
+     *
+     * @param items 头item
+     */
+    public void addHeadItem(Item... items) {
+        for (Item item : items) {
+            item.setIsFullSpan(true);
+            headItemList.add(item);
         }
     }
 
@@ -183,10 +193,20 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         if (views == null || views.length == 0) {
             return;
         }
-        for (int i = 0; i < views.length; i++) {
-            ItemSimple simple = new ItemSimple(views[i]);
-            simple.setIsFullSpan(true);
-            footItemList.add(simple);
+        for (View view : views) {
+            addFootItem(new ItemSimple(view));
+        }
+    }
+
+    /**
+     * 添加尾Item，并且设置每个Item为full span
+     *
+     * @param items 头item
+     */
+    public void addFootItem(Item... items) {
+        for (Item item : items) {
+            item.setIsFullSpan(true);
+            footItemList.add(item);
         }
     }
 
@@ -326,11 +346,15 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
 
     /**
      * 设置当前Item展示时是否全行，仅在StaggeredGridLayoutManager用到
+	 * todo    GridLayoutManager时没有支持（设置下 spansize） 不行的话只能用StaggeredGridLayoutManager
      */
     protected void setFullSpan(RecyclerView.ViewHolder holder) {
         if (holder.itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams) {
             StaggeredGridLayoutManager.LayoutParams params = (StaggeredGridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
             params.setFullSpan(true);
+        } else if(holder.itemView.getLayoutParams() instanceof GridLayoutManager.LayoutParams) {
+            GridLayoutManager.LayoutParams params = (GridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
+            params.set
         }
     }
 
