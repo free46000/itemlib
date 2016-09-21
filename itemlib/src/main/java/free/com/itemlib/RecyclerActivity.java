@@ -42,7 +42,7 @@ public class RecyclerActivity extends Activity {
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
-        baseItemAdapter.addDataItem(new ItemRecycler(25), new ItemRecycler(1), new ItemRecycler(25), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
+        baseItemAdapter.addDataItem(new ItemRecycler(15), new ItemRecycler(15), new ItemRecycler(25), new ItemRecycler(15), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mRecyclerView.setAdapter(baseItemAdapter);
         baseItemAdapter.notifyDataSetChanged();
@@ -166,8 +166,8 @@ public class RecyclerActivity extends Activity {
                         itemViewHolder.refreshView();
                     }
 
-                    mRecyclerView.setScaleX(0.5f);
-                    mRecyclerView.setScaleY(0.5f);
+//                    mRecyclerView.setScaleX(0.5f);
+//                    mRecyclerView.setScaleY(0.5f);
 //                    mRecyclerView.getLayoutParams().height = mRecyclerView.getLayoutParams().height * 2;
 
                 }

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Gravity;
@@ -12,6 +14,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
+import static android.os.Build.VERSION_CODES.M;
+import static android.support.v7.widget.OrientationHelper.createVerticalHelper;
+
 /**
  * Created by free46000 on 2016/8/19.
  * 面板拖动辅助类 -跨RecyclerView拖动
@@ -19,7 +24,7 @@ import android.view.WindowManager;
  * todo 通过#OnDragListener的切换回调boolean值处理是否可以替换的场景（有的Item是不允许被拖动的）
  */
 public class PanelTouchHelper {
-    private static final int SCROLL_MAX_SPEED = 30;
+    private static final int SCROLL_MAX_SPEED = 10;
     private static final int NONE = -1;
     private static final int MOVE_LIMIT = 2;
 
@@ -121,6 +126,8 @@ public class PanelTouchHelper {
         currItemView = null;
     }
 
+    private int lastOffset;
+
     /**
      * 当用户拖动的时候，计算是否需要移动Item
      *
@@ -169,6 +176,12 @@ public class PanelTouchHelper {
                 lastRecyclerView = verticalRecycler;
                 //因为切换父控件，所以需要重置为当前ChildPos，不然上个的最后位置有可能超过当前的大小抛出错误
                 lastChildPos = childPos;
+//                currItemView = lastRecyclerView.getChildAt(lastChildPos);
+
+                lastOffset = NONE;
+//                verticalRecycler.getAdapter().notifyDataSetChanged();
+                verticalRecycler.requestLayout();
+//                verticalRecycler.postInvalidate();
             }
         }
 
@@ -183,9 +196,52 @@ public class PanelTouchHelper {
             }
             final RecyclerView.LayoutManager layoutManager = verticalRecycler.getLayoutManager();
             if (layoutManager instanceof ItemTouchHelper.ViewDropHandler) {
-                ((ItemTouchHelper.ViewDropHandler) layoutManager).prepareForDrop(currItemView,
-                        itemTargetView, (int) childX, (int) childY);
+                OrientationHelper helper = OrientationHelper.createVerticalHelper(layoutManager);
+                int height = helper.getDecoratedMeasurement(currItemView);
+                int start = helper.getDecoratedStart(itemTargetView);
+                int end = helper.getDecoratedEnd(itemTargetView);
+                int[] locRecy = new int[2];
+                verticalRecycler.getLocationOnScreen(locRecy);
+                int[] locTar = new int[2];
+                itemTargetView.getLocationOnScreen(locTar);
+                int myStart = locTar[1] - locRecy[1];
+
+
+                if (lastOffset == NONE) {
+                    lastOffset = myStart;
+                } else {
+                    lastOffset = lastOffset - itemTargetView.getHeight();
+                }
+                System.out.println(lastChildPos + "-" + childPos + "OrientationHelperOrientationHelper:"
+                        + height + "==" + start + "===" + end + "||||||" + myStart + "===" + itemTargetView.getHeight() + "!!!" + lastOffset);
+//111
+//                ((ItemTouchHelper.ViewDropHandler) layoutManager).prepareForDrop(currItemView,
+//                        itemTargetView, (int) childX, (int) childY);
+
+
+// 222
+                if (lastChildPos > childPos) {
+                    if (lastOffset < 0) {
+                        lastOffset = -5;
+                    }
+                    ((LinearLayoutManager) verticalRecycler.getLayoutManager())
+                            .scrollToPositionWithOffset(childPos, lastOffset);
+                } else {
+                    lastOffset = NONE;
+//                    ((LinearLayoutManager) verticalRecycler.getLayoutManager())
+//                            .scrollToPositionWithOffset(childPos, myStart +
+//                                    mOrientationHelper.getDecoratedEnd(target) -
+//                                    mOrientationHelper.getDecoratedMeasurement(view));
+                    ((ItemTouchHelper.ViewDropHandler) layoutManager).prepareForDrop(currItemView,
+                            itemTargetView, (int) childX, (int) childY);
+                }
             }
+
+
+            if (lastChildPos == 0 || childPos == 0) {
+                verticalRecycler.scrollToPosition(0);
+            }
+
 
             System.out.println("find:" + lastParentPos + "-" + verticalPos + "======" + lastChildPos + "-" + childPos);
             lastChildPos = childPos;
@@ -194,7 +250,7 @@ public class PanelTouchHelper {
     }
 
     /**
-     * 获取当前点击的位置在RecyclerView内部的坐标 Y坐标范围0+padding到height-padding
+     * 获取当前点击的位置在RecyclerView内部的坐标 (Y坐标范围0+padding到height-padding)?
      */
     private float[] getRecyclerViewInsideLocation(RecyclerView verticalRecycler, float touchRawX, float touchRawY) {
         float[] result = new float[2];
