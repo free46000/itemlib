@@ -42,7 +42,7 @@ public class RecyclerActivity extends Activity {
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         baseItemAdapter = new BaseItemAdapter(this);
-        baseItemAdapter.addDataItem(new ItemRecycler(15), new ItemRecycler(15), new ItemRecycler(25), new ItemRecycler(15), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
+        baseItemAdapter.addDataItem(new ItemRecycler(15), new ItemRecycler(1), new ItemRecycler(25), new ItemRecycler(15), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mRecyclerView.setAdapter(baseItemAdapter);
         baseItemAdapter.notifyDataSetChanged();
@@ -189,7 +189,9 @@ public class RecyclerActivity extends Activity {
                 if (i == 1) {
                     list.add(new MainActivity.ItemText(i + "fsadfsa\nfdsafdsa\nfdsafdsa\nfdsafdasfd\nsafdsa\nfdsfdasf" + i));
                 }
-                list.add(new MainActivity.ItemText(i + "fsadfsafdsafdsafdsafdsa\nfdsafdasfdsafdsafdsfdasf" + i));
+                String text = "fsadfsafdsafdsafdsafdsa\nfdsafdasfdsafdsafdsfdasf" + i;
+                text = i > 9 ? text + "\nsdad" : text;
+                list.add(new MainActivity.ItemText(i + text));
             }
             return list;
         }

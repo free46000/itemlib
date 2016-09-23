@@ -24,9 +24,8 @@ import static android.support.v7.widget.OrientationHelper.createVerticalHelper;
  * todo 通过#OnDragListener的切换回调boolean值处理是否可以替换的场景（有的Item是不允许被拖动的）
  */
 public class PanelTouchHelper {
-    private static final int SCROLL_MAX_SPEED = 10;
-    private static final int NONE = -1;
-    private static final int MOVE_LIMIT = 2;
+    public static final int NONE = -1;
+    public static final int MOVE_LIMIT = 2;
 
     private View currItemView;
     private RecyclerView horizontalRecycler;
@@ -37,7 +36,6 @@ public class PanelTouchHelper {
     private int lastChildPos = NONE;
 
     private float lastTouchRawX, lastTouchRawY;
-    private int offsetX, offsetY;
     private RecyclerView lastRecyclerView;
 
     public PanelTouchHelper(RecyclerView horizontalRecycler) {
@@ -69,8 +67,13 @@ public class PanelTouchHelper {
         currItemView = itemView;
         lastChildPos = itemPosition;
         onDragListener.onDragStart();
-        floatViewHelper.createView(floatView, currItemView);
+        floatViewHelper.createView(floatView, currItemView, lastTouchRawX, lastTouchRawY);
         lastParentPos = NONE;
+        lastOffset = NONE;
+
+        final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams)
+                currItemView.getLayoutParams();
+        itemViewHeight = currItemView.getHeight() + params.topMargin + params.bottomMargin;
     }
 
 
@@ -126,7 +129,10 @@ public class PanelTouchHelper {
         currItemView = null;
     }
 
-    private int lastOffset;
+    //// TODO: 2016/9/22 这些参数含义整理更好的方式
+    private int lastOffset; //no useful
+    private boolean isChangedRecyclerView;
+    private int itemViewHeight;
 
     /**
      * 当用户拖动的时候，计算是否需要移动Item
@@ -141,7 +147,7 @@ public class PanelTouchHelper {
 
         View view = horizontalRecycler.findChildViewUnder(location[0], location[1]);
         int verticalPos = getPositionByItemView(view);
-        System.out.println("find_parent_out:" + lastParentPos + "-" + verticalPos + "==" + location[0] + "====" + location[1]);
+//        System.out.println("find_parent_out:" + lastParentPos + "-" + verticalPos + "==" + location[0] + "====" + location[1]);
 
         RecyclerView verticalRecycler = findRecyclerView(view);
         if (verticalPos == NONE || verticalRecycler == null) {
@@ -151,7 +157,7 @@ public class PanelTouchHelper {
         location = getRecyclerViewInsideLocation(verticalRecycler, touchRawX, touchRawY);
         float childX = location[0];
         float childY = location[1];
-        System.out.println("find_parent_out:" + lastParentPos + "-" + verticalPos + "==" + "childX:" + childX + "childY:" + childY);
+//        System.out.println("find_parent_out:" + lastParentPos + "-" + verticalPos + "==" + "childX:" + childX + "childY:" + childY);
 
         View itemTargetView = verticalRecycler.findChildViewUnder(childX, childY);
         int childPos = getTargetChildPos(itemTargetView, childY, lastParentPos, verticalPos);
@@ -160,29 +166,34 @@ public class PanelTouchHelper {
             onDragListener.onRecyclerSelected(verticalRecycler, verticalPos);
             lastParentPos = verticalPos;
             lastRecyclerView = verticalRecycler;
+            isChangedRecyclerView = false;
         } else if (isChangeRecyclerView(lastParentPos, verticalPos)) {
-            if (childPos == NONE) {
-                childPos = calcChildPositionOnChangedRecyclerView(verticalRecycler, childX, childY);
-            }
+            childPos = calcChildPositionOnChangedRecyclerView(verticalRecycler, itemTargetView, childPos, childX, childY);
             if (childPos != NONE) {
+                int[] toPos = onDragListener.onRecyclerChangedBefore(lastRecyclerView, verticalRecycler,
+                        lastChildPos, childPos, lastParentPos, verticalPos);
+                verticalPos = toPos[0];
+                childPos = toPos[1];
                 boolean isChanged = onDragListener.onRecyclerChanged(lastRecyclerView, verticalRecycler,
                         lastChildPos, childPos, lastParentPos, verticalPos);
                 if (!isChanged) {
                     return result;
                 }
-                System.out.println("find_parent:" + lastParentPos + "-" + verticalPos);
+//                System.out.println("find_parent:" + lastParentPos + "-" + verticalPos);
                 //在切换recycle view并且触摸到子recycle view的item的时候才真正去改变值
                 lastParentPos = verticalPos;
                 lastRecyclerView = verticalRecycler;
                 //因为切换父控件，所以需要重置为当前ChildPos，不然上个的最后位置有可能超过当前的大小抛出错误
                 lastChildPos = childPos;
-//                currItemView = lastRecyclerView.getChildAt(lastChildPos);
+//                currItemView = lastRecyclerView.findViewHolderForAdapterPosition(lastChildPos).itemView;
 
                 lastOffset = NONE;
 //                verticalRecycler.getAdapter().notifyDataSetChanged();
-                verticalRecycler.requestLayout();
+//                verticalRecycler.requestLayout();
 //                verticalRecycler.postInvalidate();
+                isChangedRecyclerView = true;
             }
+
         }
 
         if (childPos == NONE) {
@@ -190,6 +201,8 @@ public class PanelTouchHelper {
         }
 
         if (isNeedMove(itemTargetView, lastChildPos, childPos, childY)) {
+            childPos = onDragListener.onItemChangedBefore(verticalRecycler, lastChildPos, childPos, lastParentPos);
+
             boolean isChanged = onDragListener.onItemChanged(verticalRecycler, lastChildPos, childPos, lastParentPos);
             if (!isChanged) {
                 return result;
@@ -212,8 +225,8 @@ public class PanelTouchHelper {
                 } else {
                     lastOffset = lastOffset - itemTargetView.getHeight();
                 }
-                System.out.println(lastChildPos + "-" + childPos + "OrientationHelperOrientationHelper:"
-                        + height + "==" + start + "===" + end + "||||||" + myStart + "===" + itemTargetView.getHeight() + "!!!" + lastOffset);
+//                System.out.println(lastChildPos + "-" + childPos + "OrientationHelperOrientationHelper:"
+//                        + height + "==" + start + "===" + end + "||||||" + myStart + "===" + itemTargetView.getHeight() + "!!!" + lastOffset);
 //111
 //                ((ItemTouchHelper.ViewDropHandler) layoutManager).prepareForDrop(currItemView,
 //                        itemTargetView, (int) childX, (int) childY);
@@ -221,20 +234,24 @@ public class PanelTouchHelper {
 
 // 222
                 if (lastChildPos > childPos) {
-                    if (lastOffset < 0) {
-                        lastOffset = -5;
+                    if (isChangedRecyclerView) {
+                        int h = itemTargetView.getHeight() - currItemView.getHeight();
+                        start = h > 0 && start > 0 ? start - h : start;
                     }
+//                    if (lastOffset < 0) {
+//                        lastOffset = -5;
+//                    }
                     ((LinearLayoutManager) verticalRecycler.getLayoutManager())
-                            .scrollToPositionWithOffset(childPos, lastOffset);
+                            .scrollToPositionWithOffset(childPos, start);
                 } else {
-                    lastOffset = NONE;
-//                    ((LinearLayoutManager) verticalRecycler.getLayoutManager())
-//                            .scrollToPositionWithOffset(childPos, myStart +
-//                                    mOrientationHelper.getDecoratedEnd(target) -
-//                                    mOrientationHelper.getDecoratedMeasurement(view));
-                    ((ItemTouchHelper.ViewDropHandler) layoutManager).prepareForDrop(currItemView,
-                            itemTargetView, (int) childX, (int) childY);
+
+                    ((LinearLayoutManager) verticalRecycler.getLayoutManager())
+                            .scrollToPositionWithOffset(childPos, end - itemViewHeight);
+//                    ((ItemTouchHelper.ViewDropHandler) layoutManager).prepareForDrop(currItemView,
+//                            itemTargetView, (int) childX, (int) childY);
                 }
+//                System.out.println(lastChildPos + "-" + childPos + "OrientationHelperOrientationHelper:"
+//                        + height + "==" + itemViewHeight + "=||=" + start + "===" + end + "||||||" + myStart + "===" + itemTargetView.getHeight() + "!!!" + lastOffset);
             }
 
 
@@ -258,7 +275,7 @@ public class PanelTouchHelper {
         verticalRecycler.getLocationOnScreen(location);
         result[0] = touchRawX - location[0];
         result[1] = touchRawY - location[1];
-        System.out.println("getRecyclerViewInsideLocation:" + result[0] + "-" + result[1] + "==" + "X:" + touchRawX + "Y:" + touchRawY);
+//        System.out.println("getRecyclerViewInsideLocation:" + result[0] + "-" + result[1] + "==" + "X:" + touchRawX + "Y:" + touchRawY);
 
         int minX = verticalRecycler.getPaddingTop();
         int maxY = verticalRecycler.getHeight() - verticalRecycler.getPaddingBottom();
@@ -270,11 +287,18 @@ public class PanelTouchHelper {
     /**
      * 当在两个RecyclerView中切换时，计算目标RecyclerView中Child位置 (若目标RecyclerView为空返回0)
      */
-    private int calcChildPositionOnChangedRecyclerView(RecyclerView verticalRecycler, float childX, float childY) {
-        if (verticalRecycler.getAdapter().getItemCount() == 0) {
-            return 0;
+    private int calcChildPositionOnChangedRecyclerView(RecyclerView verticalRecycler, View itemTargetView, int childPos, float childX, float childY) {
+        if (childPos == NONE && verticalRecycler.getAdapter().getItemCount() == 0) {
+            childPos = 0;
+        } else if (itemTargetView != null) {
+            int top = itemTargetView.getTop();
+            if ((top + itemTargetView.getHeight() / MOVE_LIMIT) < childY) {
+                //证明滑动位置在targetView的下半部分，所以要插入到当前位置+1
+                childPos++;
+            }
         }
-        return NONE;
+
+        return childPos;
     }
 
     /**
@@ -327,45 +351,25 @@ public class PanelTouchHelper {
         if (currItemView == null) {
             return false;
         }
+
         RecyclerView.LayoutManager lm = recyclerView.getLayoutManager();
         int scrollX = 0;
         int scrollY = 0;
         if (lm.canScrollHorizontally()) {
-            int direct = onDragListener.calcScrollHorizontalDirect(curX, recyclerView.getWidth());
-            float lrLimit = onDragListener.getHorizontalScrollLimit();
-            if (direct < 0) {
-                float level = (lrLimit - curX) / lrLimit;
-                scrollX = -calcScrollDistance(level);
-            } else if (direct > 0) {
-                float level = (curX - recyclerView.getWidth() + lrLimit) / lrLimit;
-                scrollX = calcScrollDistance(level);
-            }
+            scrollX = onDragListener.calcHorizontalScrollDistance(recyclerView, curX, curY);
         }
-
         if (lm.canScrollVertically()) {
-            int direct = onDragListener.calcScrollVerticalDirect(curY, recyclerView.getHeight());
-            float udLimit = onDragListener.getVerticalScrollLimit();
-            if (direct < 0) {
-                float level = (udLimit - curY) / udLimit;
-                scrollY = -calcScrollDistance(level);
-            } else if (direct > 0) {
-                float level = (curY - recyclerView.getHeight() + udLimit) / udLimit;
-                scrollY = calcScrollDistance(level);
-            }
+            scrollY = onDragListener.calcVerticalScrollDistance(recyclerView, curX, curY);
         }
-
         System.out.println("scroll:::::" + scrollY + "=" + recyclerView.getScrollY() + "curY::" + curY);
         System.out.println("scroll:::::" + scrollX + "=" + recyclerView.getScrollX() + "curX::" + curX);
+
         if (scrollX != 0 || scrollY != 0) {
             recyclerView.scrollBy(scrollX, scrollY);
         }
         return scrollX != 0 || scrollY != 0;
     }
 
-    private int calcScrollDistance(float touchLevel) {
-        touchLevel = touchLevel > 1 ? 1f : touchLevel;
-        return (int) (touchLevel * SCROLL_MAX_SPEED);
-    }
 
     /**
      * 获取需要move的目标view，即toPosition
@@ -393,8 +397,8 @@ public class PanelTouchHelper {
         int top = itemTargetView.getTop();
 
         int moveLimit = top + itemTargetView.getHeight() / MOVE_LIMIT;
-        System.out.println("isNeedRemove-top:" + top + "======height:" + itemTargetView.getHeight()
-                + "======touchY:" + touchY + "moveLimit====" + moveLimit);
+//        System.out.println("isNeedRemove-top:" + top + "======height:" + itemTargetView.getHeight()
+//                + "======touchY:" + touchY + "moveLimit====" + moveLimit);
 
         if (lastChildPos > targetPos) {
 //            return touchY < moveLimit && top >= 0;
@@ -408,7 +412,7 @@ public class PanelTouchHelper {
      * touch的位置是否为当前view，防止两个item切换时的抖动问题
      */
     private boolean isCurrPosition(float childY, View itemView) {
-        System.out.println("isCurrPosition:" + (childY > itemView.getTop() && childY < itemView.getBottom()));
+//        System.out.println("isCurrPosition:" + (childY > itemView.getTop() && childY < itemView.getBottom()));
         return childY > itemView.getTop() && childY < itemView.getBottom();
     }
 
@@ -422,8 +426,8 @@ public class PanelTouchHelper {
         }
         try {
             RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) itemView.getLayoutParams();
-            System.out.println("paramsgetViewAdapterPosition:" + params.getViewAdapterPosition()
-                    + "==getViewLayoutPosition:" + params.getViewLayoutPosition());
+//            System.out.println("paramsgetViewAdapterPosition:" + params.getViewAdapterPosition()
+//                    + "==getViewLayoutPosition:" + params.getViewLayoutPosition());
             return ((RecyclerView.LayoutParams) itemView.getLayoutParams()).getViewAdapterPosition();
         } catch (Exception e) {
             e.printStackTrace();
@@ -454,10 +458,11 @@ public class PanelTouchHelper {
     }
 
 
-    class DragFloatViewHelper {
+    public static class DragFloatViewHelper {
         private View currTouchedView;
         private WindowManager wManager;
         private WindowManager.LayoutParams mParams;
+        private int offsetX, offsetY;
 
         /**
          * 创建浮层view
@@ -465,7 +470,7 @@ public class PanelTouchHelper {
          * @param floatView 浮层view
          * @param coverView 被覆盖的view，用于计算浮层位置
          */
-        public void createView(View floatView, View coverView) {
+        public void createView(View floatView, View coverView, float touchRawX, float touchRawY) {
             currTouchedView = floatView;
 
             wManager = (WindowManager) floatView.getContext().getSystemService(
@@ -479,8 +484,8 @@ public class PanelTouchHelper {
             modifyFloatView();
             wManager.addView(floatView, mParams);
 
-            offsetX = (int) (lastTouchRawX - location[0]);
-            offsetY = (int) (lastTouchRawY - location[1]);
+            offsetX = (int) (touchRawX - location[0]);
+            offsetY = (int) (touchRawY - location[1]);
         }
 
         protected void modifyFloatView() {
@@ -536,49 +541,10 @@ public class PanelTouchHelper {
 
 
     public static abstract class OnDragListener {
-        private int horizontalLimit = 100;
-        private int verticalLimit = 200;
-
-        public float getHorizontalScrollLimit() {
-            return verticalLimit;
-        }
-
-        public float getVerticalScrollLimit() {
-            return horizontalLimit;
-        }
-
-
-        /**
-         * 计算水平滚动指向
-         * 可以对touchX的值进行过滤  例:滑动超出view(touchX<0||touchX>viewWidth)
-         *
-         * @return -1:像左滑 0:不滑动 1:像右滑
-         */
-        public int calcScrollHorizontalDirect(int touchX, int viewWidth) {
-            float lrLimit = getHorizontalScrollLimit();
-            if (touchX < lrLimit) {
-                return -1;
-            } else if (touchX > viewWidth - lrLimit) {
-                return 1;
-            }
-            return 0;
-        }
-
-        /**
-         * 计算垂直滚动指向
-         * 可以对touchY的值进行过滤  例:滑动超出view(touchY<0||touchY>viewHeight)
-         *
-         * @return -1:像上滑 0:不滑动 1:像下滑
-         */
-        public int calcScrollVerticalDirect(int touchY, int viewHeight) {
-            float udLimit = getVerticalScrollLimit();
-            if (touchY < udLimit) {
-                return -1;
-            } else if (touchY > viewHeight - udLimit) {
-                return 1;
-            }
-            return 0;
-        }
+        protected int horizontalScrollMaxSpeed = 15;
+        protected int verticalScrollMaxSpeed = 10;
+        protected float horizontalLimit = 100;
+        protected float verticalLimit = 200;
 
 
         /**
@@ -625,10 +591,98 @@ public class PanelTouchHelper {
          */
         public abstract void onDragFinish(RecyclerView recyclerView, int itemPos, int itemHorizontalPos);
 
-
         /**
          * 拖拽开始时回调
          */
         public abstract void onDragStart();
+
+
+        public int[] onRecyclerChangedBefore(RecyclerView fromView, RecyclerView toView, int itemFromPos, int itemToPos,
+                                             int recyclerViewFromPos, int recyclerViewToPos) {
+            return new int[]{recyclerViewToPos, itemToPos};
+        }
+
+        public int onItemChangedBefore(RecyclerView recyclerView, int fromPos, int toPos, int recyclerViewPos) {
+            return toPos;
+        }
+
+        public int getHorizontalScrollMaxSpeed() {
+            return horizontalScrollMaxSpeed;
+        }
+
+        public int getVerticalScrollMaxSpeed() {
+            return verticalScrollMaxSpeed;
+        }
+
+        public float getHorizontalLimit() {
+            return horizontalLimit;
+        }
+
+        public float getVerticalLimit() {
+            return verticalLimit;
+        }
+
+
+        public int calcHorizontalScrollDistance(View view, int touchX, int touchY) {
+            int direct = calcScrollHorizontalDirect(touchX, view.getWidth());
+            int scrollDistance = 0;
+            if (direct < 0) {
+                float level = (getHorizontalLimit() - touchX) / getHorizontalLimit();
+                scrollDistance = -calcScrollDistance(level, getHorizontalScrollMaxSpeed());
+            } else if (direct > 0) {
+                float level = (touchX - view.getWidth() + getHorizontalLimit()) / getHorizontalLimit();
+                scrollDistance = calcScrollDistance(level, getHorizontalScrollMaxSpeed());
+            }
+            return scrollDistance;
+        }
+
+        public int calcVerticalScrollDistance(View view, int touchX, int touchY) {
+            int direct = calcScrollVerticalDirect(touchY, view.getHeight());
+            int scrollDistance = 0;
+            if (direct < 0) {
+                float level = (getVerticalLimit() - touchY) / getVerticalLimit();
+                scrollDistance = -calcScrollDistance(level, getVerticalScrollMaxSpeed());
+            } else if (direct > 0) {
+                float level = (touchY - view.getHeight() + getVerticalLimit()) / getVerticalLimit();
+                scrollDistance = calcScrollDistance(level, getVerticalScrollMaxSpeed());
+            }
+            return scrollDistance;
+        }
+
+
+        protected int calcScrollDistance(float touchLevel, int maxSpeed) {
+            touchLevel = touchLevel > 1 ? 1f : touchLevel;
+            return (int) (touchLevel * maxSpeed);
+        }
+
+        /**
+         * 计算水平滚动指向
+         * 可以对touchX的值进行过滤  例:滑动超出view(touchX<0||touchX>viewWidth)
+         *
+         * @return -1:像左滑 0:不滑动 1:像右滑
+         */
+        public int calcScrollHorizontalDirect(int touchX, int viewWidth) {
+            if (touchX < getHorizontalLimit()) {
+                return -1;
+            } else if (touchX > viewWidth - getHorizontalLimit()) {
+                return 1;
+            }
+            return 0;
+        }
+
+        /**
+         * 计算垂直滚动指向
+         * 可以对touchY的值进行过滤  例:滑动超出view(touchY<0||touchY>viewHeight)
+         *
+         * @return -1:像上滑 0:不滑动 1:像下滑
+         */
+        public int calcScrollVerticalDirect(int touchY, int viewHeight) {
+            if (touchY < getVerticalLimit()) {
+                return -1;
+            } else if (touchY > viewHeight - getVerticalLimit()) {
+                return 1;
+            }
+            return 0;
+        }
     }
 }
