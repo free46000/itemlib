@@ -147,7 +147,7 @@ public class PanelTouchHelper {
 
         View view = horizontalRecycler.findChildViewUnder(location[0], location[1]);
         int verticalPos = getPositionByItemView(view);
-//        System.out.println("find_parent_out:" + lastParentPos + "-" + verticalPos + "==" + location[0] + "====" + location[1]);
+        System.out.println("find_parent_out:" + lastParentPos + "-" + verticalPos + "==" + location[0] + "====" + location[1]);
 
         RecyclerView verticalRecycler = findRecyclerView(view);
         if (verticalPos == NONE || verticalRecycler == null) {
@@ -161,7 +161,7 @@ public class PanelTouchHelper {
 
         View itemTargetView = verticalRecycler.findChildViewUnder(childX, childY);
         int childPos = getTargetChildPos(itemTargetView, childY, lastParentPos, verticalPos);
-
+切换RecyclerView我感觉这个地方应该是NONE，自动放在第0个位置
         if (isSelectedRecyclerView(lastParentPos, verticalPos)) {
             onDragListener.onRecyclerSelected(verticalRecycler, verticalPos);
             lastParentPos = verticalPos;
@@ -260,7 +260,7 @@ public class PanelTouchHelper {
             }
 
 
-            System.out.println("find:" + lastParentPos + "-" + verticalPos + "======" + lastChildPos + "-" + childPos);
+//            System.out.println("find:" + lastParentPos + "-" + verticalPos + "======" + lastChildPos + "-" + childPos);
             lastChildPos = childPos;
         }
         return result;
@@ -361,8 +361,8 @@ public class PanelTouchHelper {
         if (lm.canScrollVertically()) {
             scrollY = onDragListener.calcVerticalScrollDistance(recyclerView, curX, curY);
         }
-        System.out.println("scroll:::::" + scrollY + "=" + recyclerView.getScrollY() + "curY::" + curY);
-        System.out.println("scroll:::::" + scrollX + "=" + recyclerView.getScrollX() + "curX::" + curX);
+//        System.out.println("scroll:::::" + scrollY + "=" + recyclerView.getScrollY() + "curY::" + curY);
+//        System.out.println("scroll:::::" + scrollX + "=" + recyclerView.getScrollX() + "curX::" + curX);
 
         if (scrollX != 0 || scrollY != 0) {
             recyclerView.scrollBy(scrollX, scrollY);

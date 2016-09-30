@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,7 +29,7 @@ public class RecyclerActivity extends Activity {
 
 
     private RecyclerView mRecyclerView;
-    private BaseItemAdapter baseItemAdapter;
+    private BaseItemAdapter mBaseItemAdapter;
     private PanelTouchHelper touchHelper;
 
     private float lastTouchX;
@@ -41,11 +42,11 @@ public class RecyclerActivity extends Activity {
         setContentView(R.layout.activity_recycler_muti);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        baseItemAdapter = new BaseItemAdapter(this);
-        baseItemAdapter.addDataItem(new ItemRecycler(15), new ItemRecycler(1), new ItemRecycler(25), new ItemRecycler(15), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        mRecyclerView.setAdapter(baseItemAdapter);
-        baseItemAdapter.notifyDataSetChanged();
+        mBaseItemAdapter = new BaseItemAdapter(this);
+        mBaseItemAdapter.addDataItem(new ItemRecycler(15), new ItemRecycler(1), new ItemRecycler(25), new ItemRecycler(15), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
+        mRecyclerView.setLayoutManager(new Manager(this, LinearLayoutManager.HORIZONTAL, false));
+        mRecyclerView.setAdapter(mBaseItemAdapter);
+        mBaseItemAdapter.notifyDataSetChanged();
         mRecyclerView.setClipToPadding(false);
 
         touchHelper = new PanelTouchHelper(mRecyclerView);
@@ -116,6 +117,27 @@ public class RecyclerActivity extends Activity {
 
     }
 
+    class Manager extends LinearLayoutManager {
+
+        public Manager(Context context) {
+            super(context);
+        }
+
+        public Manager(Context context, int orientation, boolean reverseLayout) {
+            super(context, orientation, reverseLayout);
+        }
+
+        public Manager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+            super(context, attrs, defStyleAttr, defStyleRes);
+        }
+
+        @Override
+        public void setMeasuredDimension(int widthSize, int heightSize) {
+//            widthSize = widthSize * 2;
+            super.setMeasuredDimension(widthSize, heightSize);
+        }
+    }
+
 
     class ItemRecycler extends ItemBase {
 
@@ -166,8 +188,22 @@ public class RecyclerActivity extends Activity {
                         itemViewHolder.refreshView();
                     }
 
+//                    List<ItemViewHolder> list = mBaseItemAdapter.getItemViewHolders();
+//                    for (ItemViewHolder viewHolder : list) {
+//                        viewHolder.getItemView().setPivotX(0f);
+//                        viewHolder.getItemView().setPivotY(0f);
+//                        viewHolder.getItemView().setScaleX(0.5f);
+//                        viewHolder.getItemView().setScaleY(0.5f);
+//                        int width = viewHolder.getItemView().getWidth();
+//                        viewHolder.getItemView().setTranslationX(-(width * viewHolder.location / 2));
+//                    }
+
+//                    mRecyclerView.setPivotX(0f);
+//                    mRecyclerView.setPivotY(0f);
 //                    mRecyclerView.setScaleX(0.5f);
 //                    mRecyclerView.setScaleY(0.5f);
+//                    mRecyclerView.requestLayout();
+
 //                    mRecyclerView.getLayoutParams().height = mRecyclerView.getLayoutParams().height * 2;
 
                 }

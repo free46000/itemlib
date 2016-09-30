@@ -29,6 +29,10 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         BaseItemAdapter adapter = new BaseItemAdapter(this);
         adapter.addDataItem(new ItemText(), new ItemText(), new ItemText());
+        adapter.addDataItem(new ItemText(), new ItemText(), new ItemText());
+        adapter.addDataItem(new ItemText(), new ItemText(), new ItemText());
+        adapter.addDataItem(new ItemText(), new ItemText(), new ItemText());
+        adapter.addDataItem(new ItemText(), new ItemText(), new ItemText());
         recyclerView.setAdapter(adapter);
 
         startActivity(new Intent(this, free.com.itemlib.MainActivity.class));
@@ -52,6 +56,11 @@ public class MainActivity extends AppCompatActivity {
     class ItemText extends ItemBase {
 
         @Override
+        public String getItemViewType() {
+            return toString();
+        }
+
+        @Override
         public View initItemView(Context context, ViewGroup viewGroup) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_text, viewGroup, false);
             return view;
@@ -59,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void fillData(ItemViewHolder itemView) {
+            System.out.println("fillData" + itemView.location);
             ((TextView) getView(itemView.getItemView(), R.id.textView)).setText("asfada" +
                     "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas" +
                     "sfdasfdsafadsfadsfdasfsafdasfadsfdasfdasfasdfdsafdsafdsafdsafdasfdsafdsafsdasfas" +
