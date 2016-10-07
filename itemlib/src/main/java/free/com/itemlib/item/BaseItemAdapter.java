@@ -280,6 +280,13 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     }
 
     /**
+     * @hide
+     */
+    public List<ItemViewHolder> getItemViewHolders() {
+        return viewHolderList;
+    }
+
+    /**
      * @return 获取当前数据源List，不包含head和foot
      */
     public List<Item> getDataList() {
@@ -347,13 +354,13 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
 
     /**
      * 设置当前Item展示时是否全行，仅在StaggeredGridLayoutManager用到
-	 * todo    GridLayoutManager时没有支持（设置下 spansize） 不行的话只能用StaggeredGridLayoutManager
+     * todo    GridLayoutManager时没有支持（设置下 spansize） 不行的话只能用StaggeredGridLayoutManager
      */
     protected void setFullSpan(RecyclerView.ViewHolder holder) {
         if (holder.itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams) {
             StaggeredGridLayoutManager.LayoutParams params = (StaggeredGridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
             params.setFullSpan(true);
-        } else if(holder.itemView.getLayoutParams() instanceof GridLayoutManager.LayoutParams) {
+        } else if (holder.itemView.getLayoutParams() instanceof GridLayoutManager.LayoutParams) {
             GridLayoutManager.LayoutParams params = (GridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
         }
     }
