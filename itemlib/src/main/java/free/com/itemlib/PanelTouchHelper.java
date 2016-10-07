@@ -126,7 +126,7 @@ public class PanelTouchHelper {
         currItemView = null;
     }
 
-    private int lastOffset;
+    private int lastOffset = NONE;
 
     /**
      * 当用户拖动的时候，计算是否需要移动Item
