@@ -4,13 +4,16 @@ import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import free.com.itemlib.item.animation.AnimationLoader;
 import free.com.itemlib.item.animation.BaseAnimation;
@@ -24,8 +27,9 @@ import free.com.itemlib.item.view.content.ItemLoadMore;
 import free.com.itemlib.item.view.content.ItemSimple;
 
 public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.RecyclerViewHolder> {
-    protected final List<String> mTypeList = new ArrayList<>();
-    protected final List<Item> mTypeItemList = new ArrayList<>();
+    protected final Map<String, Integer> mTypes = new HashMap<>();
+    protected final SparseArray<Item> mTypeItems = new SparseArray<>();
+    protected int mTypeIndex = 2;
     protected Context context;
     private List<Item> dataItemList = new ArrayList<>();
     private List<Item> headItemList = new ArrayList<>();
@@ -251,8 +255,8 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
         itemLoadMore = null;
         //todo 如果clear后更新item的种类有可能会造成type和item对应混乱
         //[ItemA ItemA] 这个时候ItemA是初始type=1 然后clear了 设置新的[ItemB ItemB]这样ItemB就是初始type=1 就会使用ItemA对应的ViewHolder
-        mTypeList.clear();
-        mTypeItemList.clear();
+        mTypes.clear();
+        mTypeItems.clear();
         clearParams();
     }
 
@@ -335,7 +339,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     @Override
     public RecyclerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         //viewType的位置对应最新的Item，详情getItemViewType
-        Item item = mTypeItemList.get(viewType);
+        Item item = mTypeItems.get(viewType);
         ItemViewHolder itemViewHolder = item.newItemViewHolder(context, parent);
         View view = itemViewHolder.getItemView();
         RecyclerViewHolder myViewHolder = new RecyclerViewHolder(view);
@@ -400,15 +404,15 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     public int getItemViewType(int position) {
         Item item = getItem(position);
         String typeName = item.getItemViewType();
-        int index = mTypeList.indexOf(typeName);
-        if (index == -1) {
-            index = mTypeList.size();
-            mTypeList.add(typeName);
-            mTypeItemList.add(item);
+        Integer type = mTypes.get(typeName);
+        if (type == null || type < 0) {
+            type = mTypeIndex++;
+            mTypes.put(typeName, type);
+            mTypeItems.put(type, item);
         } else {
-            mTypeItemList.set(index, item);
+            mTypeItems.put(type, item);
         }
-        return index;
+        return type;
     }
 
     static class RecyclerViewHolder extends RecyclerView.ViewHolder {

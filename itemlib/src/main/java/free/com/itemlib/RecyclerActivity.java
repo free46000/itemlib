@@ -34,14 +34,25 @@ public class RecyclerActivity extends Activity {
 
     private float lastTouchX;
     private float lastTouchY;
-
+    View contentView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recycler_muti);
 
+        contentView = findViewById(R.id.activity_recycler_content);
+        contentView.getLayoutParams().width = 2880;
+        contentView.getLayoutParams().height = 4616;
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mRecyclerView.getLayoutParams().width = 2880;
+        mRecyclerView.getLayoutParams().height = 4616;
+
+        contentView.setScaleX(0.5f);
+        contentView.setScaleY(0.5f);
+        contentView.setPivotX(0f);
+        contentView.setPivotY(0f);
+
         mBaseItemAdapter = new BaseItemAdapter(this);
         mBaseItemAdapter.addDataItem(new ItemRecycler(15), new ItemRecycler(1), new ItemRecycler(25), new ItemRecycler(15), new ItemRecycler(5), new ItemRecycler(5), new ItemRecycler(5));
         mRecyclerView.setLayoutManager(new Manager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -73,6 +84,11 @@ public class RecyclerActivity extends Activity {
 
         public boolean onRecyclerSelected(RecyclerView recyclerView, int selectedPos) {
             return true;
+        }
+
+        @Override
+        public float getScale() {
+            return 2f;
         }
 
         public boolean onRecyclerChanged(RecyclerView fromView, RecyclerView toView, int itemFromPos,
@@ -159,6 +175,8 @@ public class RecyclerActivity extends Activity {
         @Override
         public View initItemView(Context context, final ViewGroup viewGroup) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_recycler_group, viewGroup, false);
+            view.getLayoutParams().width = 1440;
+//            view.getLayoutParams().height = 1704;
 
 
             final RecyclerView recyclerView = getView(view, R.id.item_group_recycler);
@@ -182,7 +200,7 @@ public class RecyclerActivity extends Activity {
                     int[] locArr = new int[2];
                     itemView.getLocationOnScreen(locArr);
                     touchHelper.setOnDragListener(new OnBaseDragListener(item));
-                    touchHelper.startDrag(recyclerView.getChildViewHolder(itemView), floatView);
+                    touchHelper.startDrag(recyclerView.getChildViewHolder(itemView));
                     if (item instanceof MainActivity.ItemText) {
                         ((MainActivity.ItemText) item).setGravity(View.INVISIBLE);
                         itemViewHolder.refreshView();
