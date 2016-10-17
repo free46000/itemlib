@@ -3,6 +3,7 @@ package free.com.itemlib.item.view.content;
 import android.content.Context;
 import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -66,12 +67,10 @@ public class ItemLine extends ItemImpl {
 
         @Override
         protected View initItemView() {
-            LinearLayout linearLayout = new LinearLayout(context);
-            View view = new View(context);
+            View view = LayoutInflater.from(context).inflate(R.layout.item_line, parentViewGroup, false);
             view.setBackgroundResource(lineDrawableResId);
-            linearLayout.addView(view, ViewGroup.LayoutParams.MATCH_PARENT,
-                    lineSizeInPX);
-            return linearLayout;
+            view.setMinimumHeight(lineSizeInPX);
+            return view;
         }
 
 
