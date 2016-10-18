@@ -39,7 +39,7 @@ public abstract class ItemInput extends ItemBase {
     }
 
     @Override
-    public void fillData(View itemView) {
+    public void fillData(ItemViewHolder itemViewHolder) {
 
     }
 

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.transition.Visibility;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -186,7 +187,6 @@ public class MainActivity extends Activity {
             i++;
         }
 
-
         public int getGravity() {
             return gravity;
         }
@@ -228,7 +228,6 @@ public class MainActivity extends Activity {
             @Override
             public void setData(ItemText itemContent) {
                 textView.setText(itemContent.getValue());
-                textView.setHeight(100);
                 itemView.setVisibility(currItem.getGravity());
                 if (isFullSpan()) {
 //                    itemView.setBackgroundColor(0xFFDD66CC);
