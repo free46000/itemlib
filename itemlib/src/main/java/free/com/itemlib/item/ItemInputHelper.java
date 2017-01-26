@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import free.com.itemlib.item.common.Const;
 import free.com.itemlib.item.common.ReflectUtil;
 import free.com.itemlib.item.common.Validate;
 import free.com.itemlib.item.view.ItemViewGroupHolder;
@@ -64,7 +65,7 @@ public class ItemInputHelper {
     protected void fillInputViewMap(Item item) {
         ItemViewHolder itemViewHolder = item.newItemViewHolder(context, null);
         View view = itemViewHolder.getItemView();
-        view.setTag(itemViewHolder);
+        view.setTag(Const.ITEM_HOLDER_TAG, itemViewHolder);
         itemInputViewMap.put(item, itemViewHolder);
         originSB.append(itemViewHolder.getValue());
     }

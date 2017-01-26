@@ -17,6 +17,7 @@ import java.util.Map;
 
 import free.com.itemlib.item.animation.AnimationLoader;
 import free.com.itemlib.item.animation.BaseAnimation;
+import free.com.itemlib.item.common.Const;
 import free.com.itemlib.item.common.ShrinkViewUtil;
 import free.com.itemlib.item.listener.OnItemClickListener;
 import free.com.itemlib.item.listener.OnItemLongClickListener;
@@ -372,7 +373,7 @@ public class BaseItemAdapter extends RecyclerView.Adapter<BaseItemAdapter.Recycl
     @Override
     public void onBindViewHolder(RecyclerViewHolder holder, int position) {
         ItemViewHolder itemHolder = holder.itemViewHolder;
-        holder.itemView.setTag(itemHolder);
+        holder.itemView.setTag(Const.ITEM_HOLDER_TAG, itemHolder);
         ItemViewHolder.ViewHolderParams params = new ItemViewHolder.ViewHolderParams()
                 .setItemLocation(position).setItemCount(getItemCount()).setClickListener(onItemClickListener)
                 .setLongClickListener(onItemLongClickListener);
