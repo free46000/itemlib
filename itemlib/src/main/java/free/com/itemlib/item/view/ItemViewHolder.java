@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import free.com.itemlib.R;
+import free.com.itemlib.item.common.Const;
 import free.com.itemlib.item.listener.OnItemClickListener;
 import free.com.itemlib.item.listener.OnItemLongClickListener;
 import free.com.itemlib.item.view.content.Item;
@@ -202,7 +203,7 @@ public abstract class ItemViewHolder<T extends Item> {
      */
     public void setOnItemClickListener(OnItemClickListener listener) {
         if (itemHandlerView != null) {
-            itemHandlerView.setTag(this);
+            itemHandlerView.setTag(Const.ITEM_HOLDER_TAG, this);
             itemHandlerView.setOnClickListener(listener);
             setOnChildClickListener(listener);
         }

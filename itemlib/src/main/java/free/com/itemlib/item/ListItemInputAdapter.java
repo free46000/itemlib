@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import free.com.itemlib.item.common.Const;
 import free.com.itemlib.item.view.ItemViewGroupHolder;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.common.Validate;
@@ -89,7 +90,7 @@ public class ListItemInputAdapter extends ListItemEntityAdapter {
     @Override
     protected View getViewByLocation(int position) {
         View convertView = super.getViewByLocation(position);
-        ItemViewHolder tag = (ItemViewHolder) convertView.getTag();
+        ItemViewHolder tag = (ItemViewHolder) convertView.getTag(Const.ITEM_HOLDER_TAG);
         itemInputViewMap.put(position, tag);
         originSB.append(tag.getValue());
         return convertView;

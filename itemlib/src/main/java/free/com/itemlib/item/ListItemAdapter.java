@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import free.com.itemlib.item.common.Const;
 import free.com.itemlib.item.common.ShrinkViewUtil;
 import free.com.itemlib.item.listener.OnItemClickListener;
 import free.com.itemlib.item.listener.OnItemLongClickListener;
@@ -99,8 +100,8 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
         if (itemIndex >= firstVisiblePosition && itemIndex <= lastVisiblePosition) {
             View view = absView.getChildAt(itemIndex - firstVisiblePosition);
             int type = getItemViewType(itemIndex);
-            if (view.getTag() instanceof ItemViewHolder) {
-                ItemViewHolder mViewHolder = (ItemViewHolder) view.getTag();
+            if (view.getTag(Const.ITEM_HOLDER_TAG) instanceof ItemViewHolder) {
+                ItemViewHolder mViewHolder = (ItemViewHolder) view.getTag(Const.ITEM_HOLDER_TAG);
                 notifyDataSetChanged(mViewHolder);
             }
         }
@@ -151,7 +152,7 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
     }
 
     protected void populate(View view, int location) {
-        ItemViewHolder itemViewHolder = (ItemViewHolder) view.getTag();
+        ItemViewHolder itemViewHolder = (ItemViewHolder) view.getTag(Const.ITEM_HOLDER_TAG);
         ItemViewHolder.ViewHolderParams params = new ItemViewHolder.ViewHolderParams()
                 .setItemLocation(location).setItemCount(getCount()).setClickListener(onItemClickListener)
                 .setLongClickListener(onItemLongClickListener).setListViewScrollState(scrollState);
@@ -161,7 +162,7 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
     protected View getViewByLocation(int position) {
         ItemViewHolder itemViewHolder = getItem(position).newItemViewHolder(context, null);
         View view = itemViewHolder.getItemView();
-        view.setTag(itemViewHolder);
+        view.setTag(Const.ITEM_HOLDER_TAG, itemViewHolder);
         return view;
     }
 
@@ -193,8 +194,8 @@ public class ListItemAdapter extends BaseAdapter implements AbsListView.OnScroll
         if (scrollState == SCROLL_STATE_IDLE) {
             for (int i = 0; i < absView.getChildCount(); i++) {
                 View view = absView.getChildAt(i);
-                if (view.getTag() != null && view.getTag() instanceof ItemViewHolder) {
-                    ItemViewHolder itemViewHolder = (ItemViewHolder) view.getTag();
+                if (view.getTag(Const.ITEM_HOLDER_TAG) != null && view.getTag(Const.ITEM_HOLDER_TAG) instanceof ItemViewHolder) {
+                    ItemViewHolder itemViewHolder = (ItemViewHolder) view.getTag(Const.ITEM_HOLDER_TAG);
                     int state = itemViewHolder.getParams().getListViewScrollState();
                     if (state == SCROLL_STATE_FLING) {
                         itemViewHolder.populateItemViewWhenIdle(getItem(itemViewHolder.location), itemViewHolder.getParams());

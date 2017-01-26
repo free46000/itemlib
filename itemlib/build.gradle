@@ -1,5 +1,3 @@
-import org.apache.tools.ant.taskdefs.condition.Os
-
 apply plugin: 'com.android.library'
 apply plugin: 'maven'
 
@@ -11,7 +9,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "default"
+        versionName "1.0.2_beta"
     }
     buildTypes {
         release {
@@ -20,39 +18,27 @@ android {
         }
     }
 
-    // 3.maven-路径
-    uploadArchives {
-        repositories.mavenDeployer {
+}
+
+// 3.maven-路径
+uploadArchives {
+    repositories.mavenDeployer {
 //            def deployPath = file('../testrecyclerview/libs')
-            def deployPath = file('../../lcandroid/lesschat/app/libs')
-            repository(url: "file://${deployPath.absolutePath}" )
-            pom.project {
-                groupId 'com.free.itemlib'
-                artifactId 'itemlib'
-                version android.defaultConfig.versionName
-            }
+        def deployPath = file('../../maven')
+        repository(url: "file://${deployPath.absolutePath}")
+        pom.project {
+            groupId 'com.free'
+            artifactId 'itemlib'
+            version android.defaultConfig.versionName
         }
     }
 }
-
-task appSync(type:Exec) {
-    workingDir '../../FreeCommon'
-    if (Os.isFamily(Os.FAMILY_MAC)) {
-        commandLine 'chmod', '+x', 'gradlew'
-        commandLine './gradlew', ':app:generateReleaseSources'
-    } else if (Os.isFamily(Os.FAMILY_WINDOWS)){
-        commandLine 'cmd', '/c', 'gradlew', ':app:generateReleaseSources'
-    }
-}
-
-appSync.dependsOn uploadArchives
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     // Dependencies for local unit tests
     testCompile "junit:junit:$rootProject.ext.junitVersion"
     // App's dependencies, including test
-    compile "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
     compile "com.android.support:recyclerview-v7:$rootProject.supportLibraryVersion"
 
 }

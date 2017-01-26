@@ -3,6 +3,7 @@ package free.com.itemlib.item.listener;
 import android.util.Log;
 import android.view.View;
 
+import free.com.itemlib.item.common.Const;
 import free.com.itemlib.item.view.ItemViewHolder;
 import free.com.itemlib.item.view.content.Item;
 
@@ -14,7 +15,7 @@ public abstract class OnItemClickListener implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        Object tag = v.getTag();
+        Object tag = v.getTag(Const.ITEM_HOLDER_TAG);
         if (tag == null || !(tag instanceof ItemViewHolder)) {
             Log.e("OnItemClickListener", "OnItemClickListener点击监听通过view的tag没获取到ItemViewHolder，所以不予执行OnClick");
             return;
